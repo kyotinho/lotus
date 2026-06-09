@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -160,889 +160,1019 @@
       background: rgba(255,255,255,0.07);
       color: rgba(255,255,255,0.7);
     }
+
+    /* ESTILOS NOVOS PARA O FLASH DE MENSAGEM */
+    #flash-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
+      z-index: 500;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none; /* Para não atrapalhar os cliques na flor */
+      transition: opacity 0.1s ease-in-out; /* Transição rápida para dar o efeito de flash */
+    }
+
+    #flash-text {
+      color: white;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 2rem;
+      text-align: center;
+      padding: 20px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Botão Play invisível inicial para tocar a música após interação do usuário (Regras dos navegadores) */
+    #start-audio-btn {
+      position: fixed;
+      inset: 0;
+      z-index: 998; /* Abaixo do loader */
+      background: rgba(0,0,0,0.8);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Courier New', monospace;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: none; /* Só mostra se precisar de clique para iniciar a música */
+    }
+
   </style>
 </head>
 <body>
 
-  <div id="canvas-container"></div>
+<!-- ELEMENTO DE ÁUDIO (COLOQUE O NOME DO SEU ARQUIVO AQUI) -->
+<audio id="bg-music" loop>
+  <source src="musica.mp3" type="audio/mpeg">
+  Seu navegador não suporta o elemento de áudio.
+</audio>
 
-  <div id="loader">
-    <div class="title">LOADING</div>
-    <div class="bar-bg">
-      <div class="bar-fill" id="loader-bar"></div>
-    </div>
-    <div class="pct" id="loader-pct">0%</div>
+<!-- BOTÃO INICIAL PARA LIBERAR O ÁUDIO -->
+<div id="start-audio-btn">começar</div>
+
+<!-- CONTAINER DE FLASH (MENSAGENS) -->
+<div id="flash-container">
+  <div id="flash-text"></div>
+</div>
+
+<div id="canvas-container"></div>
+
+<div id="loader">
+  <div class="title">LOADING</div>
+  <div class="bar-bg">
+    <div class="bar-fill" id="loader-bar"></div>
+  </div>
+  <div class="pct" id="loader-pct">0%</div>
+</div>
+
+<button id="ctrl-toggle">CONTROLS</button>
+
+<div id="ctrl-panel">
+  <div class="ctrl-title">CONTROLS</div>
+
+  <div class="ctrl-row">
+    <div class="ctrl-label">ROTAÇÃO <span id="lbl-rot">1.0×</span></div>
+    <input type="range" id="sl-rot" min="0" max="3" step="0.05" value="1">
+  </div>
+  <div class="ctrl-row">
+    <div class="ctrl-label">ABERTURA <span id="lbl-bloom">1.0×</span></div>
+    <input type="range" id="sl-bloom" min="0.1" max="4" step="0.05" value="1">
+  </div>
+  <div class="ctrl-row">
+    <div class="ctrl-label">MURCHA <span id="lbl-wilt">1.0×</span></div>
+    <input type="range" id="sl-wilt" min="0.1" max="4" step="0.05" value="1">
   </div>
 
-  <button id="ctrl-toggle">CONTROLS</button>
+  <hr>
 
-  <div id="ctrl-panel">
-    <div class="ctrl-title">CONTROLS</div>
-
-    <div class="ctrl-row">
-      <div class="ctrl-label">ROTAÇÃO <span id="lbl-rot">1.0×</span></div>
-      <input type="range" id="sl-rot" min="0" max="3" step="0.05" value="1">
-    </div>
-    <div class="ctrl-row">
-      <div class="ctrl-label">ABERTURA <span id="lbl-bloom">1.0×</span></div>
-      <input type="range" id="sl-bloom" min="0.1" max="4" step="0.05" value="1">
-    </div>
-    <div class="ctrl-row">
-      <div class="ctrl-label">MURCHA <span id="lbl-wilt">1.0×</span></div>
-      <input type="range" id="sl-wilt" min="0.1" max="4" step="0.05" value="1">
-    </div>
-
-    <hr>
-
-    <div class="ctrl-row">
-      <div class="ctrl-label">TROCA DE MODO <span id="lbl-mode">3.5s</span></div>
-      <input type="range" id="sl-mode" min="0.3" max="12" step="0.1" value="3.5">
-    </div>
-    <div class="ctrl-row">
-      <div class="ctrl-label">FREQ. GLITCH <span id="lbl-glitch">1.0×</span></div>
-      <input type="range" id="sl-glitch" min="0.1" max="4" step="0.05" value="1">
-    </div>
-    <div class="ctrl-row">
-      <div class="ctrl-label">ONDAS / OSC. <span id="lbl-wave">1.0×</span></div>
-      <input type="range" id="sl-wave" min="0.1" max="4" step="0.05" value="1">
-    </div>
-    <div class="ctrl-row">
-      <div class="ctrl-label">INFLUÊNCIA MOUSE <span id="lbl-mouse">1.0×</span></div>
-      <input type="range" id="sl-mouse" min="0" max="4" step="0.05" value="1">
-    </div>
-
-    <hr>
-
-    <button class="ctrl-reset" id="btn-reset">RESETAR</button>
+  <div class="ctrl-row">
+    <div class="ctrl-label">TROCA DE MODO <span id="lbl-mode">3.5s</span></div>
+    <input type="range" id="sl-mode" min="0.3" max="12" step="0.1" value="3.5">
+  </div>
+  <div class="ctrl-row">
+    <div class="ctrl-label">FREQ. GLITCH <span id="lbl-glitch">1.0×</span></div>
+    <input type="range" id="sl-glitch" min="0.1" max="4" step="0.05" value="1">
+  </div>
+  <div class="ctrl-row">
+    <div class="ctrl-label">ONDAS / OSC. <span id="lbl-wave">1.0×</span></div>
+    <input type="range" id="sl-wave" min="0.1" max="4" step="0.05" value="1">
+  </div>
+  <div class="ctrl-row">
+    <div class="ctrl-label">INFLUÊNCIA MOUSE <span id="lbl-mouse">1.0×</span></div>
+    <input type="range" id="sl-mouse" min="0" max="4" step="0.05" value="1">
   </div>
 
-  <script>
-    // Global config object — read by the p5 sketch each frame
-    const cfg = {
-      rotSpeed:    1.0,
-      bloomSpeed:  1.0,
-      wiltSpeed:   1.0,
-      modeInterval:3.5,
-      glitchFreq:  1.0,
-      waveSpeed:   1.0,
-      mouseInfluence: 1.0
-    };
+  <hr>
 
-    const defaults = { ...cfg };
+  <button class="ctrl-reset" id="btn-reset">RESETAR</button>
+</div>
 
-    function bindSlider(id, lblId, key, fmt) {
-      const sl  = document.getElementById(id);
-      const lbl = document.getElementById(lblId);
-      sl.addEventListener('input', () => {
-        cfg[key] = parseFloat(sl.value);
-        lbl.textContent = fmt(cfg[key]);
-      });
-    }
+<!-- SCRIPT DAS MENSAGENS E ÁUDIO (NOVO) -->
+<script>
+  // --- CUSTOMIZE SUAS MENSAGENS AQUI ---
+  const mensagensAmor = [
+    "Koi no Yokan (恋の予感): A premonição do amor. Pressentimento inexplicável e silencioso, no começo, de que o encontro não foi por acaso e que, inevitavelmente, nós nos apaixonaríamos.",
+    "Zweisamkeit: A "solidão a dois". Sensação de paz, intimidade e harmonia absolutas quando estamos juntos e sozinhos, como se o resto do mundo lá fora deixasse de existir e só o universo particular importasse.",
+    "Cafuné: O toque de afeto puro. É o gesto físico que diz "eu estou aqui, você está segura e eu cuido de você", acalmarei a sua alma pois eu te amo.",
+    "Redamancy: O amor correspondido em sua forma mais completa. O ato de amar inteiramente alguém que te ama na mesma intensidade, uma reciprocidade perfeita e incondicional.",
+    "Yuanfen (缘分): O destino que une as pessoas. A força invisível e magnética que fez os caminhos se cruzarem no momento exato. Significa que a conexão já estava escrita muito antes de nos conhecermos.",
+    "Sillage (si-yazh): O rastro invisível. O perfume deixado no ar mesmo depois de ter saído do ambiente. A sensação poética de que a presença  é tão marcante que continua preenchendo o espaço, mesmo quando ela não está fisicamente ali.",
+    "Batticuore: O coração que bate apressado. O sobressalto no peito que se sente toda vez que a pessoa amada está, o jeito especial, o sorriso. Não importa quanto tempo passe, sempre será capaz de tirar o seu fôlego e acelerar o  coração."
+  ];
 
-    bindSlider('sl-rot',    'lbl-rot',    'rotSpeed',      v => v.toFixed(1) + '×');
-    bindSlider('sl-bloom',  'lbl-bloom',  'bloomSpeed',    v => v.toFixed(1) + '×');
-    bindSlider('sl-wilt',   'lbl-wilt',   'wiltSpeed',     v => v.toFixed(1) + '×');
-    bindSlider('sl-mode',   'lbl-mode',   'modeInterval',  v => v.toFixed(1) + 's');
-    bindSlider('sl-glitch', 'lbl-glitch', 'glitchFreq',    v => v.toFixed(1) + '×');
-    bindSlider('sl-wave',   'lbl-wave',   'waveSpeed',     v => v.toFixed(1) + '×');
-    bindSlider('sl-mouse',  'lbl-mouse',  'mouseInfluence',v => v.toFixed(1) + '×');
+  // --- CONFIGURAÇÕES DE TEMPO DO FLASH ---
+  const tempoMinimoFlash = 300; // Tempo mínimo entre flashes (em milissegundos) - 5 segundos
+  const tempoMaximoFlash = 15000; // Tempo máximo entre flashes (em milissegundos) - 15 segundos
+  const duracaoMensagemNaTela = 800; // Tempo que a mensagem fica visível (em milissegundos)
 
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      Object.assign(cfg, defaults);
-      document.getElementById('sl-rot').value    = defaults.rotSpeed;
-      document.getElementById('sl-bloom').value  = defaults.bloomSpeed;
-      document.getElementById('sl-wilt').value   = defaults.wiltSpeed;
-      document.getElementById('sl-mode').value   = defaults.modeInterval;
-      document.getElementById('sl-glitch').value = defaults.glitchFreq;
-      document.getElementById('sl-wave').value   = defaults.waveSpeed;
-      document.getElementById('sl-mouse').value  = defaults.mouseInfluence;
-      document.getElementById('lbl-rot').textContent    = defaults.rotSpeed.toFixed(1) + '×';
-      document.getElementById('lbl-bloom').textContent  = defaults.bloomSpeed.toFixed(1) + '×';
-      document.getElementById('lbl-wilt').textContent   = defaults.wiltSpeed.toFixed(1) + '×';
-      document.getElementById('lbl-mode').textContent   = defaults.modeInterval.toFixed(1) + 's';
-      document.getElementById('lbl-glitch').textContent = defaults.glitchFreq.toFixed(1) + '×';
-      document.getElementById('lbl-wave').textContent   = defaults.waveSpeed.toFixed(1) + '×';
-      document.getElementById('lbl-mouse').textContent  = defaults.mouseInfluence.toFixed(1) + '×';
+  const flashContainer = document.getElementById('flash-container');
+  const flashText = document.getElementById('flash-text');
+
+  function iniciarFlashes() {
+    const tempoAteProximoFlash = Math.random() * (tempoMaximoFlash - tempoMinimoFlash) + tempoMinimoFlash;
+
+    setTimeout(() => {
+      // Escolhe uma mensagem aleatória
+      const mensagemAleatoria = mensagensAmor[Math.floor(Math.random() * mensagensAmor.length)];
+      flashText.innerText = mensagemAleatoria;
+
+      // Mostra o flash
+      flashContainer.style.opacity = '1';
+
+      // Esconde o flash depois da duração estipulada
+      setTimeout(() => {
+        flashContainer.style.opacity = '0';
+        iniciarFlashes(); // Chama a função de novo para programar o próximo
+      }, duracaoMensagemNaTela);
+
+    }, tempoAteProximoFlash);
+  }
+
+  // --- LÓGICA DE ÁUDIO ---
+  const bgMusic = document.getElementById('bg-music');
+  const startAudioBtn = document.getElementById('start-audio-btn');
+  let audioIniciado = false;
+
+  function tentarTocarAudio() {
+    if(audioIniciado) return;
+    bgMusic.play().then(() => {
+      audioIniciado = true;
+      startAudioBtn.style.display = 'none'; // Se tocou, esconde o botão
+    }).catch(error => {
+      // Navegadores bloqueiam autoplay, então mostramos o botão
+      console.log("Autoplay bloqueado. Precisamos de interação do usuário.");
+      startAudioBtn.style.display = 'flex';
     });
-
-    document.getElementById('ctrl-toggle').addEventListener('click', () => {
-      document.getElementById('ctrl-panel').classList.toggle('open');
-    });
-  </script>
-
-  <script>
-    let p5Instance = null;
-
-    const loaderEl  = document.getElementById('loader');
-    const loaderBar = document.getElementById('loader-bar');
-    const loaderPct = document.getElementById('loader-pct');
-
-    let loadingTimerDone = false;
-    let p5LoadingDone    = false;
-
-    function checkReady() {
-      if (loadingTimerDone && p5LoadingDone) {
-        if (p5Instance) p5Instance.startExperience();
-        loaderEl.classList.add('fade');
-      }
-    }
-
-    setTimeout(() => { loadingTimerDone = true; checkReady(); }, 2500);
-
-    const sketch = function(p) {
-      const BUF_W = 680, BUF_H = 680;
-      let buf;
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*'.split('');
-      let ctx;
-
-      let elements = [];
-      let curEl    = 0;
-
-      let phase  = 'growing';
-      let phaseT = 0;
-
-      let bloom       = 0;
-      let bloomTarget = 1;
-      let lastBloom   = -1;
-
-      let renderMode = 0, prevMode = 0, modeT = 1;
-
-      let grid = 4, gridTarget = 4;
-      const GRID_MIN = 4, GRID_MAX = 20;
-      let densDir = 1, densTimer = 0;
-
-      let mInfX = 0, mInfY = 0;
-      let t = 0;
-
-      let rotX = 0, rotY = 0, rotZ = 0;
-      let autoRotX = 0, autoRotY = 0, autoRotZ = 0;
-      let mouseRotX = 0, mouseRotY = 0;
-      let targetMouseRotX = 0, targetMouseRotY = 0;
-      let rotEaseIn = 0;
-
-      let loadingPhase = true;
-      let warmFrames   = 0;
-      const WARM_TARGET = 60;
-
-      let glitchTimer     = 0;
-      let glitchActive    = false;
-      let glitchIntensity = 0;
-      let glitchSlices    = [];
-
-      let wilt     = 0;
-      let lastWilt = -1;
-
-      const easeInOutCubic = x => x < 0.5 ? 4*x*x*x : 1 - p.pow(-2*x+2, 3) / 2;
-      const easeOutQuart   = x => 1 - p.pow(1 - x, 4);
-
-      p.setup = function() {
-        p.createCanvas(p.windowWidth, p.windowHeight);
-        p.pixelDensity(1);
-        p.textFont('Courier New, monospace');
-        p.textAlign(p.CENTER, p.CENTER);
-        p.noStroke();
-
-        buf = p.createGraphics(BUF_W, BUF_H);
-        buf.pixelDensity(1);
-        buf.noSmooth();
-        buf.canvas.getContext('2d', { willReadFrequently: true });
-
-        ctx = p.drawingContext;
-
-        // Lotus color variants — soft pinks, whites, deep magentas
-        elements = [
-          { c1:[230,170,190], c2:[255,240,245], c3:[180,80,120],  stemC:[40,110,60],  layers:10, petalsPerLayer:7,  maxRadius:148, ruffleAmt:4,  sepals:5, receptacleR:28 },
-          { c1:[255,200,215], c2:[255,245,250], c3:[200,100,140], stemC:[38,105,58],  layers:11, petalsPerLayer:8,  maxRadius:142, ruffleAmt:3,  sepals:6, receptacleR:30 },
-          { c1:[210,140,180], c2:[250,225,240], c3:[150,50,100],  stemC:[42,112,62],  layers:10, petalsPerLayer:7,  maxRadius:152, ruffleAmt:5,  sepals:5, receptacleR:26 },
-        ];
-
-        startElement(0);
-      };
-
-      function startElement(idx) {
-        curEl       = idx;
-        bloom       = 0;
-        bloomTarget = 1;
-        lastBloom   = -1;
-        lastWilt    = -1;
-        wilt        = 0;
-        phase       = 'growing';
-        phaseT      = 0;
-        grid        = GRID_MIN;
-        gridTarget  = GRID_MIN;
-        densDir     = 1;
-        densTimer   = 0;
-        modeT       = 1;
-      }
-
-      p.startExperience = function() {
-        loadingPhase = false;
-      };
-
-      p.draw = function() {
-        const dt = p.deltaTime / 1000;
-        const f  = elements[curEl];
-
-        if (loadingPhase) {
-          p.background(0);
-          bloom = p.min(0.5, warmFrames / WARM_TARGET * 0.5);
-          drawFlowerToBuffer(f, bloom, 0);
-          warmFrames++;
-          const pct = p.min(100, p.floor(warmFrames / WARM_TARGET * 100));
-          if (loaderBar) loaderBar.style.width = pct + '%';
-          if (loaderPct) loaderPct.textContent  = pct + '%';
-          if (warmFrames >= WARM_TARGET) {
-            p5LoadingDone = true;
-            checkReady();
-          }
-          return;
-        }
-
-        p.background(0);
-        t += 0.006 * cfg.waveSpeed;
-
-        rotEaseIn = p.min(1, rotEaseIn + dt * 0.08);
-        const re = easeInOutCubic(rotEaseIn);
-
-        autoRotY += dt * 0.10  * re * cfg.rotSpeed;
-        autoRotX += dt * 0.04 * p.sin(t * 0.07) * re * cfg.rotSpeed;
-        autoRotZ += dt * 0.03 * p.sin(t * 0.04 + 1.5) * re * cfg.rotSpeed;
-
-        targetMouseRotX = (p.mouseY - p.height / 2) / p.height * 1.2;
-        targetMouseRotY = (p.mouseX - p.width  / 2) / p.width  * 1.8;
-        mouseRotX += (targetMouseRotX - mouseRotX) * 0.02 * cfg.mouseInfluence;
-        mouseRotY += (targetMouseRotY - mouseRotY) * 0.02 * cfg.mouseInfluence;
-
-        rotX = autoRotX + mouseRotX * re;
-        rotY = autoRotY + mouseRotY * re;
-        rotZ = autoRotZ;
-
-        if (phase === 'growing') {
-          bloom += (bloomTarget - bloom) * 0.002 * cfg.bloomSpeed;
-          phaseT += dt;
-          if (bloom > 0.98) { bloom = 1; phase = 'interactive'; phaseT = 0; }
-        }
-
-        densTimer += dt;
-        if (densTimer > cfg.modeInterval) {
-          densTimer = 0;
-          triggerGlitch();
-          prevMode   = renderMode;
-          renderMode = (renderMode + 1) % 3;
-          modeT      = 0;
-          if (densDir === 1) { gridTarget = GRID_MAX; densDir = -1; }
-          else               { gridTarget = GRID_MIN; densDir =  1; }
-        }
-
-        if (phase === 'interactive') {
-          phaseT += dt;
-          if (phaseT > 25) { phase = 'wilting'; phaseT = 0; triggerGlitch(); }
-        }
-
-        if (phase === 'wilting') {
-          wilt    = p.min(1, wilt + dt * 0.015 * cfg.wiltSpeed);
-          phaseT += dt;
-          if (wilt > 0.95) { phase = 'waiting'; phaseT = 0; }
-        }
-
-        if (phase === 'waiting') {
-          phaseT += dt;
-          if (phaseT > 0.6) {
-            prevMode   = renderMode;
-            renderMode = (renderMode + 1) % 3;
-            modeT      = 0;
-            triggerGlitch();
-            startElement((curEl + 1) % elements.length);
-          }
-        }
-
-        grid  += (gridTarget - grid) * 0.03;
-        modeT  = p.min(1, modeT + dt * 1.2);
-
-        updateGlitch(dt);
-
-        if (phase === 'interactive') {
-          mInfX += ((p.mouseX - p.width  / 2) * 0.08 - mInfX) * 0.04 * cfg.mouseInfluence;
-          mInfY += ((p.mouseY - p.height / 2) * 0.08 - mInfY) * 0.04 * cfg.mouseInfluence;
-        } else {
-          mInfX *= 0.95;
-          mInfY *= 0.95;
-        }
-
-        drawFlowerToBuffer(f, bloom, wilt);
-
-        glitchTimer -= dt;
-        if (glitchTimer <= 0 && !glitchActive) {
-          glitchTimer = p.random(8, 18) / cfg.glitchFreq;
-          if (p.random() < 0.4) triggerGlitch();
-        }
-
-        renderToScreen();
-        drawGlitchOverlay();
-        drawFPS();
-      };
-
-      function triggerGlitch() {
-        glitchActive    = true;
-        glitchIntensity = p.random(0.4, 1.0);
-        glitchSlices    = [];
-        const scaleF = p.min(p.width / BUF_W, p.height / BUF_H) * 0.85;
-        const rW = BUF_W * scaleF, rH = BUF_H * scaleF;
-        const fOx = (p.width  - rW) / 2 + mInfX;
-        const fOy = (p.height - rH) / 2 + mInfY;
-        const numSlices = p.floor(p.random(3, 10));
-        for (let i = 0; i < numSlices; i++) {
-          const sy = p.random(fOy, fOy + rH);
-          const sh = p.min(p.random(2, rH * 0.08), fOy + rH - sy);
-          glitchSlices.push({
-            y: sy, h: sh, fx: fOx, fw: rW,
-            offset: p.random(-80, 80) * glitchIntensity,
-            colorShift: p.random() < 0.4,
-            duration: p.random(0.08, 0.3)
-          });
-        }
-      }
-
-      function updateGlitch(dt) {
-        if (!glitchActive) return;
-        let allDone = true;
-        for (const s of glitchSlices) {
-          s.duration -= dt;
-          if (s.duration > 0) allDone = false;
-          else s.offset *= 0.7;
-        }
-        if (allDone) { glitchActive = false; glitchSlices = []; }
-      }
-
-      function drawGlitchOverlay() {
-        if (!glitchActive || !glitchSlices.length) return;
-        for (const s of glitchSlices) {
-          if (p.abs(s.offset) < 0.5) continue;
-          const sx = p.floor(s.fx), sy = p.floor(s.y), sw = p.floor(s.fw), sh = p.floor(s.h);
-          if (sw < 1 || sh < 1) continue;
-          if (s.colorShift) {
-            ctx.save();
-            ctx.globalAlpha = 0.7;
-            ctx.globalCompositeOperation = 'lighter';
-            ctx.drawImage(ctx.canvas, sx, sy, sw, sh, sx + s.offset*1.5, sy, sw, sh);
-            ctx.globalAlpha = 0.45;
-            ctx.drawImage(ctx.canvas, sx, sy, sw, sh, sx - s.offset, sy, sw, sh);
-            ctx.restore();
-          } else {
-            ctx.drawImage(ctx.canvas, sx, sy, sw, sh, sx + s.offset, sy, sw, sh);
-          }
-        }
-      }
-
-      function drawFlowerToBuffer(f, bl, wl) {
-        buf.background(0);
-        buf.noStroke();
-        wl = wl || 0;
-        const stemProgress = p.constrain(bl * 3, 0, 1);
-        const flowerBloom  = p.constrain((bl - 0.15) / 0.85, 0, 1);
-        const wiltDroop    = wl * 35;
-        const flowerCX     = BUF_W / 2;
-        const flowerCY     = BUF_H * 0.42 + wiltDroop;
-        drawStem(buf, f, stemProgress, wl, flowerCX, flowerCY);
-        drawLotus3D(buf, f, flowerBloom, wl, flowerCX, flowerCY);
-        buf.loadPixels();
-      }
-
-      // Lotus stem: straight, aquatic, with large round floating leaves
-      function drawStem(g, f, progress, wl, cx, cy) {
-        wl = wl || 0;
-        const stemLen   = BUF_H * 0.40;
-        const stemX     = BUF_W / 2;
-        const stemTop   = cy;
-        const stemBot   = stemTop + stemLen;
-        const visibleLen = stemLen * easeOutQuart(progress);
-        const visibleTop = stemBot - visibleLen;
-
-        // Draw the water surface line
-        if (progress > 0.5) {
-          const waterY = stemTop + stemLen * 0.65;
-          for (let x = stemX - 80; x < stemX + 80; x += 4) {
-            const wave = p.sin(x * 0.07 + t * 1.2) * 2.5;
-            g.fill(30, 80, 140, 60);
-            g.ellipse(x, waterY + wave, 5, 3);
-          }
-        }
-
-        // Stem — straighter and slightly hollow-looking (lotus stems are tubular)
-        for (let y = visibleTop; y < stemBot; y += 3) {
-          const tt    = (y - stemTop) / stemLen;
-          const sw    = p.lerp(12, 7, tt);
-          const wiltB = wl * 25 * (1 - tt) * p.sin((1 - tt) * p.PI);
-          const curveX = p.sin(tt * p.PI * 0.15) * 10 + wiltB;
-          let r  = p.lerp(f.stemC[0], f.stemC[0] * 0.45, tt);
-          let gc = p.lerp(f.stemC[1], f.stemC[1] * 0.55, tt);
-          let b  = p.lerp(f.stemC[2], f.stemC[2] * 0.45, tt);
-          if (wl > 0) {
-            r  = p.lerp(r,  r  * 0.4 + 25, wl * 0.5);
-            gc = p.lerp(gc, gc * 0.35 + 20, wl * 0.5);
-            b  = p.lerp(b,  b  * 0.3 + 8,  wl * 0.5);
-          }
-          g.fill(r, gc, b);
-          g.ellipse(stemX + curveX, y, sw, 4);
-          // Highlight stripe on stem
-          g.fill(r * 1.5, gc * 1.5, b * 1.3, 45);
-          g.ellipse(stemX + curveX - 1.5, y, sw * 0.25, 2.5);
-        }
-
-        // Large lily pad leaves (characteristic of lotus)
-        if (progress > 0.25) {
-          const lp = p.constrain((progress - 0.25) / 0.5, 0, 1);
-          const ly = stemTop + stemLen * 0.60;
-          const lx = stemX - 12;
-          drawLilyPad(g, lx, ly, -1, 72 * lp, f.stemC, wl);
-        }
-        if (progress > 0.45) {
-          const lp = p.constrain((progress - 0.45) / 0.45, 0, 1);
-          const ly = stemTop + stemLen * 0.72;
-          const lx = stemX + 14;
-          drawLilyPad(g, lx, ly, 1, 58 * lp, f.stemC, wl);
-        }
-        if (progress > 0.65) {
-          const lp = p.constrain((progress - 0.65) / 0.35, 0, 1);
-          const ly = stemTop + stemLen * 0.55;
-          const lx = stemX + 5;
-          drawLilyPad(g, lx, ly, 0.4, 42 * lp, f.stemC, wl);
-        }
-      }
-
-      // Flat round lily pad (lotus leaf) — nearly circular with a radial notch
-      function drawLilyPad(g, x, y, side, sz, sc, wl) {
-        if (sz < 3) return;
-        wl = wl || 0;
-        g.push();
-        g.translate(x, y);
-        g.rotate(side * 0.3);
-        // Squish a bit for perspective
-        g.scale(1.0, 0.38);
-
-        let gr = sc[1] * (wl > 0 ? 0.5 + 0.3 * (1 - wl) : 1.05);
-        let rr = sc[0] * (wl > 0 ? 0.7 + 0.2 * (1 - wl) : 0.75);
-        let br = sc[2] * (wl > 0 ? 0.4 : 0.65);
-
-        // Pad body
-        g.fill(rr, gr, br, 210);
-        g.beginShape();
-        const notchAng = p.PI * 0.15;
-        for (let a = notchAng; a <= p.TWO_PI + notchAng; a += 0.12) {
-          const distortion = 1 + p.sin(a * 6) * 0.04;
-          g.vertex(p.cos(a) * sz * distortion, p.sin(a) * sz * distortion);
-        }
-        g.endShape(p.CLOSE);
-
-        // Notch (the slit characteristic of lily pads)
-        g.fill(0, 0, 0, 0);
-        g.stroke(0, 0, 0, 80);
-        g.strokeWeight(1.0);
-        g.line(0, 0, sz * 0.55, -sz * 0.05);
-
-        // Radial veins
-        g.stroke(rr * 1.3, gr * 1.4, br * 1.2, 65);
-        g.strokeWeight(0.7);
-        for (let i = 0; i < 8; i++) {
-          const va = (p.TWO_PI / 8) * i + notchAng;
-          g.line(0, 0, p.cos(va) * sz * 0.88, p.sin(va) * sz * 0.88);
-        }
-        // Sheen highlight
-        g.noStroke();
-        g.fill(rr * 1.6, gr * 1.6, br * 1.5, 35);
-        g.ellipse(-sz * 0.22, -sz * 0.18, sz * 0.45, sz * 0.3);
-        g.noStroke();
-        g.pop();
-      }
-
-      function rot3D(x, y, z) {
-        const cY = p.cos(rotY), sY = p.sin(rotY);
-        const rx  = x*cY + z*sY;
-        const rz  = -x*sY + z*cY;
-        const cX  = p.cos(rotX), sX = p.sin(rotX);
-        const ry  = y*cX - rz*sX;
-        const rz2 = y*sX + rz*cX;
-        const cZ  = p.cos(rotZ), sZ = p.sin(rotZ);
-        const fx  = rx*cZ - ry*sZ;
-        const fy  = rx*sZ + ry*cZ;
-        return [fx, fy, rz2];
-      }
-
-      // Lotus petal: tall, pointed, slightly concave tip — drawn as a narrow elongated shape
-      function drawLotusPetal(g, it) {
-        if (!it.pw || it.pw < 0.5) return;
-        g.push();
-        g.translate(it.sx, it.sy);
-        g.rotate(it.sa);
-        g.fill(it.r, it.gr, it.b);
-
-        const pl  = it.pl;
-        const pw  = it.pw;
-        const rAmt = it.rAmt;
-        const rPh  = it.rPhase;
-        const cup  = it.cup || 0;
-
-        // Lotus petals are narrow at base, widest around 40%, pointed at tip
-        g.beginShape();
-        // Right edge: base → widest point → tip
-        for (let tt = 0; tt <= 1; tt += 0.06) {
-          const px   = tt * pl;
-          // envelope: narrows near 0 and near 1, peak near 0.40
-          const env  = p.sin(tt * p.PI * 0.95) * p.pow(1 - tt * 0.55, 1.1);
-          const bW   = env * pw;
-          const cupC = p.sin(tt * p.PI) * cup * pw * 0.55;
-          const ruf  = p.sin(tt * 5 + rPh) * rAmt * tt * (1 - tt);
-          g.vertex(px, bW + ruf + cupC);
-        }
-        // Left edge: tip → widest → base
-        for (let tt = 1; tt >= 0; tt -= 0.06) {
-          const px   = tt * pl;
-          const env  = p.sin(tt * p.PI * 0.95) * p.pow(1 - tt * 0.55, 1.1);
-          const bW   = env * pw;
-          const cupC = p.sin(tt * p.PI) * cup * pw * 0.35;
-          const ruf  = p.sin(tt * 5 + rPh + p.PI) * rAmt * tt * (1 - tt);
-          g.vertex(px, -bW + ruf - cupC);
-        }
-        g.endShape(p.CLOSE);
-
-        // Central vein highlight
-        g.fill(it.r * 1.35, it.gr * 1.35, it.b * 1.2, 55);
-        g.beginShape();
-        for (let tt = 0.05; tt <= 0.95; tt += 0.1) {
-          const px = tt * pl;
-          const hw = p.sin(tt * p.PI * 0.95) * pw * 0.12;
-          g.vertex(px, hw);
-        }
-        for (let tt = 0.95; tt >= 0.05; tt -= 0.1) {
-          const px = tt * pl;
-          const hw = p.sin(tt * p.PI * 0.95) * pw * 0.12;
-          g.vertex(px, -hw);
-        }
-        g.endShape(p.CLOSE);
-
-        g.pop();
-      }
-
-      function drawLotus3D(g, f, bl, wl, cx, cy) {
-        wl = wl || 0;
-        const focal    = 420;
-        const wiltTilt = wl * 0.14;
-        const cosW = p.cos(wiltTilt), sinW = p.sin(wiltTilt);
-        const items = [];
-
-        // Sepals (green, close in tight around bud, open wide as flower blooms)
-        if (f.sepals && bl < 0.75) {
-          const numS    = f.sepals;
-          const openAng = easeInOutCubic(bl) * p.HALF_PI * 0.85;
-          let sepalAlpha = p.map(p.constrain(bl, 0, 0.75), 0, 0.75, 255, 0);
-          if (wl) sepalAlpha *= (1 - wl);
-          if (sepalAlpha > 5) {
-            for (let i = 0; i < numS; i++) {
-              const a     = (p.TWO_PI / numS) * i;
-              const sTilt = p.HALF_PI * 0.3 - openAng;
-              const dist  = 44;
-              const ct = p.cos(sTilt), st = p.sin(sTilt);
-              const x3 = p.cos(a)*dist*ct, z3 = p.sin(a)*dist*ct, y3 = -st*dist;
-              const [rx, ry, rz] = rot3D(x3, y3, z3);
-              const ps     = focal / (focal + rz);
-              const sepAng = p.atan2(ry, rx);
-              const fv     = p.max(focal / (focal + p.abs(rz)), 0.15);
-              items.push({ rz, tp:'s', sx:rx*ps, sy:ry*ps, sa:sepAng,
-                sLen:72*ps, sW:18*ps*fv, sAlpha:sepalAlpha, sc:f.stemC });
-            }
-          }
-        }
-
-        // Receptacle (seed pod center) — prominent flat-topped cone, very characteristic of lotus
-        const cAlpha = p.constrain((bl - 0.35) / 0.35, 0, 1) * (1 - wl);
-        if (cAlpha > 0) items.push({ rz:0, tp:'c', sx:0, sy:0, sa:0, alpha:cAlpha, recR: f.receptacleR || 28 });
-
-        // Petals — lotus has wider-spaced layers, petals more upright and pointed
-        for (let layer = f.layers; layer >= 0; layer--) {
-          const lr         = layer / f.layers;
-          const layerDelay = (1 - lr) * 0.30;
-          const layerBl    = p.constrain((bl - layerDelay) / (1 - layerDelay), 0, 1);
-          const ebl        = easeInOutCubic(layerBl);
-          if (ebl < 0.01) continue;
-          const layerFall = p.constrain((wl * 1.4 - (1 - lr) * 0.4) / 0.6, 0, 1);
-          if (layerFall > 0.9) continue;
-
-          const innerBoost = (1 - lr);
-          // Lotus: fewer petals, more ordered
-          const np = f.petalsPerLayer + p.floor(layer * 1.2) + p.floor(innerBoost * 3);
-          const baseR = p.lerp(12, f.maxRadius, lr);
-          // Lotus petals stand more upright — smaller tilt angle
-          let tiltAngle = p.lerp(p.PI * 0.30, p.PI * 0.03, ebl) + layerFall * p.PI * 0.18;
-          tiltAngle -= innerBoost * 0.10 * ebl;
-          const cosTilt = p.cos(tiltAngle), sinTilt = p.sin(tiltAngle);
-
-          for (let i = 0; i < np; i++) {
-            const petalHash = ((i * 73 + layer * 137) & 0xFF) / 255;
-            if (wl > 0.1 && petalHash < (wl - 0.1) * 1.3) continue;
-            let angle = (p.TWO_PI / np) * i + layer * 0.38 + p.sin(layer * 1.8) * 0.08;
-            angle += petalHash * 0.10;
-            const droopAmt = layerFall * 0.45 * (0.4 + lr * 0.6);
-            const shrink   = 1 - layerFall * 0.30;
-            const dist     = baseR * ebl * (0.30 + lr * 0.22);
-            let x3 = p.cos(angle)*dist*cosTilt, z3 = p.sin(angle)*dist*cosTilt, y3 = -sinTilt*dist + droopAmt*22;
-            if (wiltTilt > 0.001) {
-              const ny = y3*cosW - x3*sinW*0.3;
-              x3 = x3 + y3*sinW*0.3; y3 = ny;
-            }
-            const [rx, ry, rz] = rot3D(x3, y3, z3);
-            const ps          = focal / (focal + rz);
-            const sx          = rx * ps, sy = ry * ps;
-            const viewAngle   = p.atan2(ry, rx);
-            const depthFactor = focal / (focal + p.abs(rz));
-            const faceVis     = p.max(depthFactor, 0.12);
-            const nx3 = p.cos(angle)*cosTilt, ny3 = -sinTilt, nz3 = p.sin(angle)*cosTilt;
-            const [,,lnz] = rot3D(nx3, ny3, nz3);
-            const lightDot = p.constrain(-lnz, -1, 1);
-            const lightMod = p.map(lightDot, -1, 1, 0.30, 1.30);
-            const cupFactor = (1 - lr) * (1 - ebl * 0.45) * 0.28;
-
-            // Lotus petals: taller and narrower than peony
-            const pl = baseR * (0.22 + 0.78*ebl) * (1.30 + innerBoost*0.25) * shrink * ps;
-            let pw   = baseR * (0.12 + 0.88*ebl) * 0.38 * shrink * ps * faceVis;
-            pw *= (1 + cupFactor);
-
-            const rPhase = i*1.5 + layer*0.8;
-            // Lotus: very subtle ruffle (smooth petals)
-            const rAmt = f.ruffleAmt * ebl * (0.5 + layerFall * 1.2 + innerBoost * 0.3) * ps;
-
-            const lA = p.sin(angle + layer*0.5);
-            const dM = p.map(layer, 0, f.layers, 0.38, 1.0);
-            const bB = 0.42 + 0.58*ebl;
-            const cm = p.map(lA, -1, 1, 0.48, 1.18) * dM * bB * lightMod;
-
-            // Color: tips are lighter/whiter, base is deeper pink
-            const tipBlend = p.pow(lr, 0.7);
-            let r  = p.constrain(p.lerp(f.c1[0], f.c2[0], tipBlend) * cm, 0, 255);
-            let gr = p.constrain(p.lerp(f.c1[1], f.c2[1], tipBlend) * cm, 0, 255);
-            let b  = p.constrain(p.lerp(f.c1[2], f.c2[2], tipBlend) * cm, 0, 255);
-            if (wl > 0) {
-              const wf = p.min(1, layerFall * 1.3);
-              r  = p.lerp(r,  r  * 0.5 + 50, wf);
-              gr = p.lerp(gr, gr * 0.3 + 25, wf);
-              b  = p.lerp(b,  b  * 0.15 + 8,  wf);
-            }
-            items.push({ rz, tp:'p', sx, sy, sa:viewAngle, pl, pw, rPhase, rAmt, r, gr, b, cup:cupFactor });
-          }
-        }
-
-        items.sort((a, b) => a.rz - b.rz);
-
-        for (const it of items) {
-          if (it.tp === 'c') {
-            // Lotus receptacle: flat-topped conical seed pod (the iconic green disc with holes)
-            g.push();
-            g.translate(cx, cy);
-            const [cnx, cny, cnz] = rot3D(0, -1, 0);
-            const cps = focal / (focal + cnz * 12);
-            const csx = cnx * 12 * cps, csy = cny * 12 * cps;
-            const recR = it.recR || 28;
-
-            // Pod body — layered ellipses for the flat-top cone
-            for (let r = recR; r > 0; r -= 3.5) {
-              const ratio = r / recR;
-              const ySink = (1 - ratio) * 4 * cps;
-              g.fill(
-                p.lerp(40,  90,  ratio) * (it.alpha || 1),
-                p.lerp(100, 160, ratio) * (it.alpha || 1),
-                p.lerp(40,  80,  ratio) * (it.alpha || 1)
-              );
-              g.ellipse(csx, csy + ySink, r * 2.1 * cps, r * 0.85 * cps);
-            }
-
-            // Seed holes on top of the receptacle
-            if (bl > 0.55) {
-              const sa2 = p.constrain((bl - 0.55) / 0.30, 0, 1) * (1 - wl);
-              const holeCount = 10;
-              for (let i = 0; i < holeCount; i++) {
-                const ha  = (p.TWO_PI / holeCount) * i;
-                const hd  = recR * 0.52 * cps;
-                const hx  = csx + p.cos(ha) * hd;
-                const hy  = csy + p.sin(ha) * hd * 0.42;
-                const hr  = 3.5 * cps * sa2;
-                g.fill(20, 55, 20, 200 * sa2);
-                g.ellipse(hx, hy, hr * 2, hr * 1.3);
-              }
-              // Center holes
-              for (let i = 0; i < 3; i++) {
-                const ha = (p.TWO_PI / 3) * i;
-                const hd = recR * 0.2 * cps;
-                g.fill(20, 55, 20, 180 * sa2);
-                g.ellipse(csx + p.cos(ha)*hd, csy + p.sin(ha)*hd*0.4, 3*cps*sa2, 2.2*cps*sa2);
-              }
-            }
-
-            // Yellow stamens ring around receptacle
-            if (bl > 0.50) {
-              const sa3 = p.constrain((bl - 0.50) / 0.30, 0, 1) * (1 - wl);
-              for (let i = 0; i < 28; i++) {
-                const a  = (p.TWO_PI / 28) * i;
-                const d  = recR * 0.85 + (i % 4) * 2.8;
-                const stX = p.cos(a)*d*cps, stZ = p.sin(a)*d*cps*0.35, stY = -4;
-                const [srx, sry, srz] = rot3D(stX, stY, stZ);
-                const stP = focal / (focal + srz);
-                // Stamen filament
-                g.fill(245, 220, 60, 130 * sa3);
-                g.ellipse(csx + srx*stP, csy + sry*stP, 1.8*stP, 1.8*stP);
-                // Anther tip
-                g.fill(255, 240, 80, 160 * sa3);
-                g.ellipse(csx + srx*stP, csy + sry*stP - 1.5*stP, 2.8*stP, 2.8*stP);
-              }
-            }
-            g.pop();
-
-          } else if (it.tp === 's') {
-            if (!it.sW || it.sW < 1) continue;
-            g.push();
-            g.translate(cx + it.sx, cy + it.sy);
-            g.rotate(it.sa);
-            // Lotus sepals: narrower and more pointed than peony
-            g.fill(it.sc[0]*0.65, it.sc[1]*0.95, it.sc[2]*0.55, it.sAlpha);
-            g.beginShape();
-            g.vertex(0, 0);
-            g.bezierVertex(it.sLen*0.25, -it.sW*0.5, it.sLen*0.65, -it.sW*0.3, it.sLen, 0);
-            g.bezierVertex(it.sLen*0.65,  it.sW*0.3,  it.sLen*0.25,  it.sW*0.5, 0, 0);
-            g.endShape(p.CLOSE);
-            g.pop();
-
-          } else {
-            drawLotusPetal(g.push ? g : buf, it);
-            // Because drawLotusPetal uses its own push/pop we need to translate manually
-            // Fix: inline the petal draw
-            if (!it.pw || it.pw < 0.5) continue;
-            buf.push();
-            buf.translate(cx + it.sx, cy + it.sy);
-            buf.rotate(it.sa);
-            buf.fill(it.r, it.gr, it.b);
-            const pl  = it.pl, pw  = it.pw;
-            const rAmt = it.rAmt, rPh = it.rPhase;
-            const cup  = it.cup || 0;
-            buf.beginShape();
-            for (let tt = 0; tt <= 1; tt += 0.065) {
-              const px  = tt * pl;
-              const env = p.sin(tt * p.PI * 0.95) * p.pow(1 - tt * 0.55, 1.1);
-              const bW  = env * pw;
-              const cupC = p.sin(tt * p.PI) * cup * pw * 0.55;
-              const ruf = p.sin(tt * 5 + rPh) * rAmt * tt * (1 - tt);
-              buf.vertex(px, bW + ruf + cupC);
-            }
-            for (let tt = 1; tt >= 0; tt -= 0.065) {
-              const px  = tt * pl;
-              const env = p.sin(tt * p.PI * 0.95) * p.pow(1 - tt * 0.55, 1.1);
-              const bW  = env * pw;
-              const cupC = p.sin(tt * p.PI) * cup * pw * 0.35;
-              const ruf = p.sin(tt * 5 + rPh + p.PI) * rAmt * tt * (1 - tt);
-              buf.vertex(px, -bW + ruf - cupC);
-            }
-            buf.endShape(p.CLOSE);
-            // Vein
-            buf.fill(it.r * 1.35, it.gr * 1.35, it.b * 1.2, 52);
-            buf.beginShape();
-            for (let tt = 0.05; tt <= 0.92; tt += 0.1) {
-              const px = tt * pl;
-              const hw = p.sin(tt * p.PI * 0.95) * pw * 0.11;
-              buf.vertex(px, hw);
-            }
-            for (let tt = 0.92; tt >= 0.05; tt -= 0.1) {
-              const px = tt * pl;
-              const hw = p.sin(tt * p.PI * 0.95) * pw * 0.11;
-              buf.vertex(px, -hw);
-            }
-            buf.endShape(p.CLOSE);
-            buf.pop();
-          }
-        }
-      }
-
-      function renderToScreen() {
-        const px      = buf.pixels;
-        const g       = p.max(4, p.round(grid));
-        const asciiG  = p.max(g, 6);
-        const scaleF  = p.min(p.width / BUF_W, p.height / BUF_H) * 0.85;
-        const invScale = 1 / scaleF;
-        const renderW = BUF_W * scaleF, renderH = BUF_H * scaleF;
-        const ox = (p.width  - renderW) / 2 + mInfX;
-        const oy = (p.height - renderH) / 2 + mInfY;
-        const curM         = renderMode, prevM = prevMode, mt = modeT;
-        const transitionDone = mt >= 0.99;
-        const useNative    = (curM === 0) || (!transitionDone && prevM === 0);
-        if (useNative) { ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; }
-        const gEff  = (curM === 0 && transitionDone) ? asciiG : g;
-        const halfG = gEff * 0.5;
-        const yStart = p.max(0, p.floor(oy / gEff) * gEff);
-        const yEnd   = p.min(p.height, oy + renderH);
-        const xStart = p.max(0, p.floor(ox / gEff) * gEff);
-        const xEnd   = p.min(p.width, ox + renderW);
-        const asciiSize = gEff * 1.1;
-        let lastFontStr = '';
-
-        for (let sy = yStart; sy < yEnd; sy += gEff) {
-          const byBase = p.floor((sy - oy) * invScale);
-          if (byBase < 0 || byBase >= BUF_H) continue;
-          const rowOff = byBase * BUF_W;
-          for (let sx = xStart; sx < xEnd; sx += gEff) {
-            const bx = p.floor((sx - ox) * invScale);
-            if (bx < 0 || bx >= BUF_W) continue;
-            const idx = (rowOff + bx) * 4;
-            const r = px[idx], gr = px[idx+1], b = px[idx+2];
-            if ((r + gr + b) < 12) continue;
-            const bright = r*0.299 + gr*0.587 + b*0.114;
-            const cx = sx + halfG, cy = sy + halfG;
-            let mode;
-            if (transitionDone) {
-              mode = curM;
-            } else {
-              const hash = ((sx*73 + sy*137) & 0xFF) * 0.00392;
-              mode = hash < mt ? curM : prevM;
-            }
-            if (mode === 0) {
-              const fontSz  = p.floor(asciiSize * (0.4 + bright * 0.004));
-              const fontStr = fontSz + 'px Courier New';
-              if (fontStr !== lastFontStr) { ctx.font = fontStr; lastFontStr = fontStr; }
-              ctx.fillStyle = 'rgb(' + r + ',' + gr + ',' + b + ')';
-              const ci = ((bright >> 2) + ((sx*7 + sy*13) >> 3)) % chars.length;
-              ctx.fillText(chars[ci], cx, cy);
-            } else if (mode === 1) {
-              p.fill(r, gr, b);
-              const d = gEff * (0.1 + bright * 0.0033);
-              p.ellipse(cx, cy, d, d);
-            } else {
-              p.fill(r, gr, b);
-              p.rectMode(p.CENTER);
-              p.rect(cx, cy, gEff*0.93, gEff*0.93);
-            }
-          }
-        }
-      }
-
-      function drawFPS() {
-        p.fill(255, 255, 255, 40);
-        p.textSize(9);
-        p.textAlign(p.LEFT, p.TOP);
-        p.text(p.floor(p.frameRate()) + ' fps', 10, 10);
-        p.textAlign(p.CENTER, p.CENTER);
-      }
-
-      p.mousePressed = function() {
-        if (loadingPhase) return;
-        triggerGlitch();
-      };
-
-      p.keyPressed = function() {
-        if (p.key === 'f' || p.key === 'F') { const fs = p.fullscreen(); p.fullscreen(!fs); }
-        if (p.key === 'g' || p.key === 'G') triggerGlitch();
-      };
-
-      p.windowResized = function() {
-        p.resizeCanvas(p.windowWidth, p.windowHeight);
-      };
-    };
-
-    p5Instance = new p5(sketch, document.getElementById('canvas-container'));
-  </script>
+  }
+
+  startAudioBtn.addEventListener('click', () => {
+    bgMusic.play();
+    audioIniciado = true;
+    startAudioBtn.style.display = 'none';
+    iniciarFlashes(); // Inicia os flashes só depois que a experiência começar de fato
+  });
+
+</script>
+
+<!-- SEU SCRIPT P5 ORIGINAL (COM PEQUENA MODIFICAÇÃO) -->
+<script>
+  // Global config object — read by the p5 sketch each frame[cite: 1]
+  const cfg = {
+    rotSpeed:    1.0, //[cite: 1]
+    bloomSpeed:  1.0, //[cite: 1]
+    wiltSpeed:   1.0, //[cite: 1]
+    modeInterval:3.5, //[cite: 1]
+    glitchFreq:  1.0, //[cite: 1]
+    waveSpeed:   1.0, //[cite: 1]
+    mouseInfluence: 1.0 //[cite: 1]
+  }; //[cite: 1]
+
+  const defaults = { ...cfg }; //[cite: 1]
+
+  function bindSlider(id, lblId, key, fmt) { //[cite: 1]
+    const sl  = document.getElementById(id); //[cite: 1]
+    const lbl = document.getElementById(lblId); //[cite: 1]
+    sl.addEventListener('input', () => { //[cite: 1]
+      cfg[key] = parseFloat(sl.value); //[cite: 1]
+      lbl.textContent = fmt(cfg[key]); //[cite: 1]
+    }); //[cite: 1]
+  } //[cite: 1]
+
+  bindSlider('sl-rot',    'lbl-rot',    'rotSpeed',      v => v.toFixed(1) + '×'); //[cite: 1]
+  bindSlider('sl-bloom',  'lbl-bloom',  'bloomSpeed',    v => v.toFixed(1) + '×'); //[cite: 1]
+  bindSlider('sl-wilt',   'lbl-wilt',   'wiltSpeed',     v => v.toFixed(1) + '×'); //[cite: 1]
+  bindSlider('sl-mode',   'lbl-mode',   'modeInterval',  v => v.toFixed(1) + 's'); //[cite: 1]
+  bindSlider('sl-glitch', 'lbl-glitch', 'glitchFreq',    v => v.toFixed(1) + '×'); //[cite: 1]
+  bindSlider('sl-wave',   'lbl-wave',   'waveSpeed',     v => v.toFixed(1) + '×'); //[cite: 1]
+  bindSlider('sl-mouse',  'lbl-mouse',  'mouseInfluence',v => v.toFixed(1) + '×'); //[cite: 1]
+
+  document.getElementById('btn-reset').addEventListener('click', () => { //[cite: 1]
+    Object.assign(cfg, defaults); //[cite: 1]
+    document.getElementById('sl-rot').value    = defaults.rotSpeed; //[cite: 1]
+    document.getElementById('sl-bloom').value  = defaults.bloomSpeed; //[cite: 1]
+    document.getElementById('sl-wilt').value   = defaults.wiltSpeed; //[cite: 1]
+    document.getElementById('sl-mode').value   = defaults.modeInterval; //[cite: 1]
+    document.getElementById('sl-glitch').value = defaults.glitchFreq; //[cite: 1]
+    document.getElementById('sl-wave').value   = defaults.waveSpeed; //[cite: 1]
+    document.getElementById('sl-mouse').value  = defaults.mouseInfluence; //[cite: 1]
+    document.getElementById('lbl-rot').textContent    = defaults.rotSpeed.toFixed(1) + '×'; //[cite: 1]
+    document.getElementById('lbl-bloom').textContent  = defaults.bloomSpeed.toFixed(1) + '×'; //[cite: 1]
+    document.getElementById('lbl-wilt').textContent   = defaults.wiltSpeed.toFixed(1) + '×'; //[cite: 1]
+    document.getElementById('lbl-mode').textContent   = defaults.modeInterval.toFixed(1) + 's'; //[cite: 1]
+    document.getElementById('lbl-glitch').textContent = defaults.glitchFreq.toFixed(1) + '×'; //[cite: 1]
+    document.getElementById('lbl-wave').textContent   = defaults.waveSpeed.toFixed(1) + '×'; //[cite: 1]
+    document.getElementById('lbl-mouse').textContent  = defaults.mouseInfluence.toFixed(1) + '×'; //[cite: 1]
+  }); //[cite: 1]
+
+  document.getElementById('ctrl-toggle').addEventListener('click', () => { //[cite: 1]
+    document.getElementById('ctrl-panel').classList.toggle('open'); //[cite: 1]
+  }); //[cite: 1]
+</script>
+
+<script>
+  let p5Instance = null; //[cite: 1]
+
+  const loaderEl  = document.getElementById('loader'); //[cite: 1]
+  const loaderBar = document.getElementById('loader-bar'); //[cite: 1]
+  const loaderPct = document.getElementById('loader-pct'); //[cite: 1]
+
+  let loadingTimerDone = false; //[cite: 1]
+  let p5LoadingDone    = false; //[cite: 1]
+
+  function checkReady() { //[cite: 1]
+    if (loadingTimerDone && p5LoadingDone) { //[cite: 1]
+      if (p5Instance) p5Instance.startExperience(); //[cite: 1]
+      loaderEl.classList.add('fade'); //[cite: 1]
+
+      // MODIFICAÇÃO: Tentar iniciar o áudio quando a flor carrega
+      tentarTocarAudio();
+      // Se já conseguiu iniciar o áudio sem o botão (alguns navegadores permitem), inicia os flashes
+      if(audioIniciado) iniciarFlashes();
+    } //[cite: 1]
+  } //[cite: 1]
+
+  setTimeout(() => { loadingTimerDone = true; checkReady(); }, 2500); //[cite: 1]
+
+  const sketch = function(p) { //[cite: 1]
+    const BUF_W = 680, BUF_H = 680; //[cite: 1]
+    let buf; //[cite: 1]
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*'.split(''); //[cite: 1]
+    let ctx; //[cite: 1]
+
+    let elements = []; //[cite: 1]
+    let curEl    = 0; //[cite: 1]
+
+    let phase  = 'growing'; //[cite: 1]
+    let phaseT = 0; //[cite: 1]
+
+    let bloom       = 0; //[cite: 1]
+    let bloomTarget = 1; //[cite: 1]
+    let lastBloom   = -1; //[cite: 1]
+
+    let renderMode = 0, prevMode = 0, modeT = 1; //[cite: 1]
+
+    let grid = 4, gridTarget = 4; //[cite: 1]
+    const GRID_MIN = 4, GRID_MAX = 20; //[cite: 1]
+    let densDir = 1, densTimer = 0; //[cite: 1]
+
+    let mInfX = 0, mInfY = 0; //[cite: 1]
+    let t = 0; //[cite: 1]
+
+    let rotX = 0, rotY = 0, rotZ = 0; //[cite: 1]
+    let autoRotX = 0, autoRotY = 0, autoRotZ = 0; //[cite: 1]
+    let mouseRotX = 0, mouseRotY = 0; //[cite: 1]
+    let targetMouseRotX = 0, targetMouseRotY = 0; //[cite: 1]
+    let rotEaseIn = 0; //[cite: 1]
+
+    let loadingPhase = true; //[cite: 1]
+    let warmFrames   = 0; //[cite: 1]
+    const WARM_TARGET = 60; //[cite: 1]
+
+    let glitchTimer     = 0; //[cite: 1]
+    let glitchActive    = false; //[cite: 1]
+    let glitchIntensity = 0; //[cite: 1]
+    let glitchSlices    = []; //[cite: 1]
+
+    let wilt     = 0; //[cite: 1]
+    let lastWilt = -1; //[cite: 1]
+
+    const easeInOutCubic = x => x < 0.5 ? 4*x*x*x : 1 - p.pow(-2*x+2, 3) / 2; //[cite: 1]
+    const easeOutQuart   = x => 1 - p.pow(1 - x, 4); //[cite: 1]
+
+    p.setup = function() { //[cite: 1]
+      p.createCanvas(p.windowWidth, p.windowHeight); //[cite: 1]
+      p.pixelDensity(1); //[cite: 1]
+      p.textFont('Courier New, monospace'); //[cite: 1]
+      p.textAlign(p.CENTER, p.CENTER); //[cite: 1]
+      p.noStroke(); //[cite: 1]
+
+      buf = p.createGraphics(BUF_W, BUF_H); //[cite: 1]
+      buf.pixelDensity(1); //[cite: 1]
+      buf.noSmooth(); //[cite: 1]
+      buf.canvas.getContext('2d', { willReadFrequently: true }); //[cite: 1]
+
+      ctx = p.drawingContext; //[cite: 1]
+
+      // Lotus color variants — soft pinks, whites, deep magentas[cite: 1]
+      elements = [ //[cite: 1]
+        { c1:[230,170,190], c2:[255,240,245], c3:[180,80,120],  stemC:[40,110,60],  layers:10, petalsPerLayer:7,  maxRadius:148, ruffleAmt:4,  sepals:5, receptacleR:28 }, //[cite: 1]
+        { c1:[255,200,215], c2:[255,245,250], c3:[200,100,140], stemC:[38,105,58],  layers:11, petalsPerLayer:8,  maxRadius:142, ruffleAmt:3,  sepals:6, receptacleR:30 }, //[cite: 1]
+        { c1:[210,140,180], c2:[250,225,240], c3:[150,50,100],  stemC:[42,112,62],  layers:10, petalsPerLayer:7,  maxRadius:152, ruffleAmt:5,  sepals:5, receptacleR:26 }, //[cite: 1]
+      ]; //[cite: 1]
+
+      startElement(0); //[cite: 1]
+    }; //[cite: 1]
+
+    function startElement(idx) { //[cite: 1]
+      curEl       = idx; //[cite: 1]
+      bloom       = 0; //[cite: 1]
+      bloomTarget = 1; //[cite: 1]
+      lastBloom   = -1; //[cite: 1]
+      lastWilt    = -1; //[cite: 1]
+      wilt        = 0; //[cite: 1]
+      phase       = 'growing'; //[cite: 1]
+      phaseT      = 0; //[cite: 1]
+      grid        = GRID_MIN; //[cite: 1]
+      gridTarget  = GRID_MIN; //[cite: 1]
+      densDir     = 1; //[cite: 1]
+      densTimer   = 0; //[cite: 1]
+      modeT       = 1; //[cite: 1]
+    } //[cite: 1]
+
+    p.startExperience = function() { //[cite: 1]
+      loadingPhase = false; //[cite: 1]
+    }; //[cite: 1]
+
+    p.draw = function() { //[cite: 1]
+      const dt = p.deltaTime / 1000; //[cite: 1]
+      const f  = elements[curEl]; //[cite: 1]
+
+      if (loadingPhase) { //[cite: 1]
+        p.background(0); //[cite: 1]
+        bloom = p.min(0.5, warmFrames / WARM_TARGET * 0.5); //[cite: 1]
+        drawFlowerToBuffer(f, bloom, 0); //[cite: 1]
+        warmFrames++; //[cite: 1]
+        const pct = p.min(100, p.floor(warmFrames / WARM_TARGET * 100)); //[cite: 1]
+        if (loaderBar) loaderBar.style.width = pct + '%'; //[cite: 1]
+        if (loaderPct) loaderPct.textContent  = pct + '%'; //[cite: 1]
+        if (warmFrames >= WARM_TARGET) { //[cite: 1]
+          p5LoadingDone = true; //[cite: 1]
+          checkReady(); //[cite: 1]
+        } //[cite: 1]
+        return; //[cite: 1]
+      } //[cite: 1]
+
+      p.background(0); //[cite: 1]
+      t += 0.006 * cfg.waveSpeed; //[cite: 1]
+
+      rotEaseIn = p.min(1, rotEaseIn + dt * 0.08); //[cite: 1]
+      const re = easeInOutCubic(rotEaseIn); //[cite: 1]
+
+      autoRotY += dt * 0.10  * re * cfg.rotSpeed; //[cite: 1]
+      autoRotX += dt * 0.04 * p.sin(t * 0.07) * re * cfg.rotSpeed; //[cite: 1]
+      autoRotZ += dt * 0.03 * p.sin(t * 0.04 + 1.5) * re * cfg.rotSpeed; //[cite: 1]
+
+      targetMouseRotX = (p.mouseY - p.height / 2) / p.height * 1.2; //[cite: 1]
+      targetMouseRotY = (p.mouseX - p.width  / 2) / p.width  * 1.8; //[cite: 1]
+      mouseRotX += (targetMouseRotX - mouseRotX) * 0.02 * cfg.mouseInfluence; //[cite: 1]
+      mouseRotY += (targetMouseRotY - mouseRotY) * 0.02 * cfg.mouseInfluence; //[cite: 1]
+
+      rotX = autoRotX + mouseRotX * re; //[cite: 1]
+      rotY = autoRotY + mouseRotY * re; //[cite: 1]
+      rotZ = autoRotZ; //[cite: 1]
+
+      if (phase === 'growing') { //[cite: 1]
+        bloom += (bloomTarget - bloom) * 0.002 * cfg.bloomSpeed; //[cite: 1]
+        phaseT += dt; //[cite: 1]
+        if (bloom > 0.98) { bloom = 1; phase = 'interactive'; phaseT = 0; } //[cite: 1]
+      } //[cite: 1]
+
+      densTimer += dt; //[cite: 1]
+      if (densTimer > cfg.modeInterval) { //[cite: 1]
+        densTimer = 0; //[cite: 1]
+        triggerGlitch(); //[cite: 1]
+        prevMode   = renderMode; //[cite: 1]
+        renderMode = (renderMode + 1) % 3; //[cite: 1]
+        modeT      = 0; //[cite: 1]
+        if (densDir === 1) { gridTarget = GRID_MAX; densDir = -1; } //[cite: 1]
+        else               { gridTarget = GRID_MIN; densDir =  1; } //[cite: 1]
+      } //[cite: 1]
+
+      if (phase === 'interactive') { //[cite: 1]
+        phaseT += dt; //[cite: 1]
+        if (phaseT > 25) { phase = 'wilting'; phaseT = 0; triggerGlitch(); } //[cite: 1]
+      } //[cite: 1]
+
+      if (phase === 'wilting') { //[cite: 1]
+        wilt    = p.min(1, wilt + dt * 0.015 * cfg.wiltSpeed); //[cite: 1]
+        phaseT += dt; //[cite: 1]
+        if (wilt > 0.95) { phase = 'waiting'; phaseT = 0; } //[cite: 1]
+      } //[cite: 1]
+
+      if (phase === 'waiting') { //[cite: 1]
+        phaseT += dt; //[cite: 1]
+        if (phaseT > 0.6) { //[cite: 1]
+          prevMode   = renderMode; //[cite: 1]
+          renderMode = (renderMode + 1) % 3; //[cite: 1]
+          modeT      = 0; //[cite: 1]
+          triggerGlitch(); //[cite: 1]
+          startElement((curEl + 1) % elements.length); //[cite: 1]
+        } //[cite: 1]
+      } //[cite: 1]
+
+      grid  += (gridTarget - grid) * 0.03; //[cite: 1]
+      modeT  = p.min(1, modeT + dt * 1.2); //[cite: 1]
+
+      updateGlitch(dt); //[cite: 1]
+
+      if (phase === 'interactive') { //[cite: 1]
+        mInfX += ((p.mouseX - p.width  / 2) * 0.08 - mInfX) * 0.04 * cfg.mouseInfluence; //[cite: 1]
+        mInfY += ((p.mouseY - p.height / 2) * 0.08 - mInfY) * 0.04 * cfg.mouseInfluence; //[cite: 1]
+      } else { //[cite: 1]
+        mInfX *= 0.95; //[cite: 1]
+        mInfY *= 0.95; //[cite: 1]
+      } //[cite: 1]
+
+      drawFlowerToBuffer(f, bloom, wilt); //[cite: 1]
+
+      glitchTimer -= dt; //[cite: 1]
+      if (glitchTimer <= 0 && !glitchActive) { //[cite: 1]
+        glitchTimer = p.random(8, 18) / cfg.glitchFreq; //[cite: 1]
+        if (p.random() < 0.4) triggerGlitch(); //[cite: 1]
+      } //[cite: 1]
+
+      renderToScreen(); //[cite: 1]
+      drawGlitchOverlay(); //[cite: 1]
+      drawFPS(); //[cite: 1]
+    }; //[cite: 1]
+
+    function triggerGlitch() { //[cite: 1]
+      glitchActive    = true; //[cite: 1]
+      glitchIntensity = p.random(0.4, 1.0); //[cite: 1]
+      glitchSlices    = []; //[cite: 1]
+      const scaleF = p.min(p.width / BUF_W, p.height / BUF_H) * 0.85; //[cite: 1]
+      const rW = BUF_W * scaleF, rH = BUF_H * scaleF; //[cite: 1]
+      const fOx = (p.width  - rW) / 2 + mInfX; //[cite: 1]
+      const fOy = (p.height - rH) / 2 + mInfY; //[cite: 1]
+      const numSlices = p.floor(p.random(3, 10)); //[cite: 1]
+      for (let i = 0; i < numSlices; i++) { //[cite: 1]
+        const sy = p.random(fOy, fOy + rH); //[cite: 1]
+        const sh = p.min(p.random(2, rH * 0.08), fOy + rH - sy); //[cite: 1]
+        glitchSlices.push({ //[cite: 1]
+          y: sy, h: sh, fx: fOx, fw: rW, //[cite: 1]
+          offset: p.random(-80, 80) * glitchIntensity, //[cite: 1]
+          colorShift: p.random() < 0.4, //[cite: 1]
+          duration: p.random(0.08, 0.3) //[cite: 1]
+        }); //[cite: 1]
+      } //[cite: 1]
+    } //[cite: 1]
+
+    function updateGlitch(dt) { //[cite: 1]
+      if (!glitchActive) return; //[cite: 1]
+      let allDone = true; //[cite: 1]
+      for (const s of glitchSlices) { //[cite: 1]
+        s.duration -= dt; //[cite: 1]
+        if (s.duration > 0) allDone = false; //[cite: 1]
+        else s.offset *= 0.7; //[cite: 1]
+      } //[cite: 1]
+      if (allDone) { glitchActive = false; glitchSlices = []; } //[cite: 1]
+    } //[cite: 1]
+
+    function drawGlitchOverlay() { //[cite: 1]
+      if (!glitchActive || !glitchSlices.length) return; //[cite: 1]
+      for (const s of glitchSlices) { //[cite: 1]
+        if (p.abs(s.offset) < 0.5) continue; //[cite: 1]
+        const sx = p.floor(s.fx), sy = p.floor(s.y), sw = p.floor(s.fw), sh = p.floor(s.h); //[cite: 1]
+        if (sw < 1 || sh < 1) continue; //[cite: 1]
+        if (s.colorShift) { //[cite: 1]
+          ctx.save(); //[cite: 1]
+          ctx.globalAlpha = 0.7; //[cite: 1]
+          ctx.globalCompositeOperation = 'lighter'; //[cite: 1]
+          ctx.drawImage(ctx.canvas, sx, sy, sw, sh, sx + s.offset*1.5, sy, sw, sh); //[cite: 1]
+          ctx.globalAlpha = 0.45; //[cite: 1]
+          ctx.drawImage(ctx.canvas, sx, sy, sw, sh, sx - s.offset, sy, sw, sh); //[cite: 1]
+          ctx.restore(); //[cite: 1]
+        } else { //[cite: 1]
+          ctx.drawImage(ctx.canvas, sx, sy, sw, sh, sx + s.offset, sy, sw, sh); //[cite: 1]
+        } //[cite: 1]
+      } //[cite: 1]
+    } //[cite: 1]
+
+    function drawFlowerToBuffer(f, bl, wl) { //[cite: 1]
+      buf.background(0); //[cite: 1]
+      buf.noStroke(); //[cite: 1]
+      wl = wl || 0; //[cite: 1]
+      const stemProgress = p.constrain(bl * 3, 0, 1); //[cite: 1]
+      const flowerBloom  = p.constrain((bl - 0.15) / 0.85, 0, 1); //[cite: 1]
+      const wiltDroop    = wl * 35; //[cite: 1]
+      const flowerCX     = BUF_W / 2; //[cite: 1]
+      const flowerCY     = BUF_H * 0.42 + wiltDroop; //[cite: 1]
+      drawStem(buf, f, stemProgress, wl, flowerCX, flowerCY); //[cite: 1]
+      drawLotus3D(buf, f, flowerBloom, wl, flowerCX, flowerCY); //[cite: 1]
+      buf.loadPixels(); //[cite: 1]
+    } //[cite: 1]
+
+    // Lotus stem: straight, aquatic, with large round floating leaves[cite: 1]
+    function drawStem(g, f, progress, wl, cx, cy) { //[cite: 1]
+      wl = wl || 0; //[cite: 1]
+      const stemLen   = BUF_H * 0.40; //[cite: 1]
+      const stemX     = BUF_W / 2; //[cite: 1]
+      const stemTop   = cy; //[cite: 1]
+      const stemBot   = stemTop + stemLen; //[cite: 1]
+      const visibleLen = stemLen * easeOutQuart(progress); //[cite: 1]
+      const visibleTop = stemBot - visibleLen; //[cite: 1]
+
+      // Draw the water surface line[cite: 1]
+      if (progress > 0.5) { //[cite: 1]
+        const waterY = stemTop + stemLen * 0.65; //[cite: 1]
+        for (let x = stemX - 80; x < stemX + 80; x += 4) { //[cite: 1]
+          const wave = p.sin(x * 0.07 + t * 1.2) * 2.5; //[cite: 1]
+          g.fill(30, 80, 140, 60); //[cite: 1]
+          g.ellipse(x, waterY + wave, 5, 3); //[cite: 1]
+        } //[cite: 1]
+      } //[cite: 1]
+
+      // Stem — straighter and slightly hollow-looking (lotus stems are tubular)[cite: 1]
+      for (let y = visibleTop; y < stemBot; y += 3) { //[cite: 1]
+        const tt    = (y - stemTop) / stemLen; //[cite: 1]
+        const sw    = p.lerp(12, 7, tt); //[cite: 1]
+        const wiltB = wl * 25 * (1 - tt) * p.sin((1 - tt) * p.PI); //[cite: 1]
+        const curveX = p.sin(tt * p.PI * 0.15) * 10 + wiltB; //[cite: 1]
+        let r  = p.lerp(f.stemC[0], f.stemC[0] * 0.45, tt); //[cite: 1]
+        let gc = p.lerp(f.stemC[1], f.stemC[1] * 0.55, tt); //[cite: 1]
+        let b  = p.lerp(f.stemC[2], f.stemC[2] * 0.45, tt); //[cite: 1]
+        if (wl > 0) { //[cite: 1]
+          r  = p.lerp(r,  r  * 0.4 + 25, wl * 0.5); //[cite: 1]
+          gc = p.lerp(gc, gc * 0.35 + 20, wl * 0.5); //[cite: 1]
+          b  = p.lerp(b,  b  * 0.3 + 8,  wl * 0.5); //[cite: 1]
+        } //[cite: 1]
+        g.fill(r, gc, b); //[cite: 1]
+        g.ellipse(stemX + curveX, y, sw, 4); //[cite: 1]
+        // Highlight stripe on stem[cite: 1]
+        g.fill(r * 1.5, gc * 1.5, b * 1.3, 45); //[cite: 1]
+        g.ellipse(stemX + curveX - 1.5, y, sw * 0.25, 2.5); //[cite: 1]
+      } //[cite: 1]
+
+      // Large lily pad leaves (characteristic of lotus)[cite: 1]
+      if (progress > 0.25) { //[cite: 1]
+        const lp = p.constrain((progress - 0.25) / 0.5, 0, 1); //[cite: 1]
+        const ly = stemTop + stemLen * 0.60; //[cite: 1]
+        const lx = stemX - 12; //[cite: 1]
+        drawLilyPad(g, lx, ly, -1, 72 * lp, f.stemC, wl); //[cite: 1]
+      } //[cite: 1]
+      if (progress > 0.45) { //[cite: 1]
+        const lp = p.constrain((progress - 0.45) / 0.45, 0, 1); //[cite: 1]
+        const ly = stemTop + stemLen * 0.72; //[cite: 1]
+        const lx = stemX + 14; //[cite: 1]
+        drawLilyPad(g, lx, ly, 1, 58 * lp, f.stemC, wl); //[cite: 1]
+      } //[cite: 1]
+      if (progress > 0.65) { //[cite: 1]
+        const lp = p.constrain((progress - 0.65) / 0.35, 0, 1); //[cite: 1]
+        const ly = stemTop + stemLen * 0.55; //[cite: 1]
+        const lx = stemX + 5; //[cite: 1]
+        drawLilyPad(g, lx, ly, 0.4, 42 * lp, f.stemC, wl); //[cite: 1]
+      } //[cite: 1]
+    } //[cite: 1]
+
+    // Flat round lily pad (lotus leaf) — nearly circular with a radial notch[cite: 1]
+    function drawLilyPad(g, x, y, side, sz, sc, wl) { //[cite: 1]
+      if (sz < 3) return; //[cite: 1]
+      wl = wl || 0; //[cite: 1]
+      g.push(); //[cite: 1]
+      g.translate(x, y); //[cite: 1]
+      g.rotate(side * 0.3); //[cite: 1]
+      // Squish a bit for perspective[cite: 1]
+      g.scale(1.0, 0.38); //[cite: 1]
+
+      let gr = sc[1] * (wl > 0 ? 0.5 + 0.3 * (1 - wl) : 1.05); //[cite: 1]
+      let rr = sc[0] * (wl > 0 ? 0.7 + 0.2 * (1 - wl) : 0.75); //[cite: 1]
+      let br = sc[2] * (wl > 0 ? 0.4 : 0.65); //[cite: 1]
+
+      // Pad body[cite: 1]
+      g.fill(rr, gr, br, 210); //[cite: 1]
+      g.beginShape(); //[cite: 1]
+      const notchAng = p.PI * 0.15; //[cite: 1]
+      for (let a = notchAng; a <= p.TWO_PI + notchAng; a += 0.12) { //[cite: 1]
+        const distortion = 1 + p.sin(a * 6) * 0.04; //[cite: 1]
+        g.vertex(p.cos(a) * sz * distortion, p.sin(a) * sz * distortion); //[cite: 1]
+      } //[cite: 1]
+      g.endShape(p.CLOSE); //[cite: 1]
+
+      // Notch (the slit characteristic of lily pads)[cite: 1]
+      g.fill(0, 0, 0, 0); //[cite: 1]
+      g.stroke(0, 0, 0, 80); //[cite: 1]
+      g.strokeWeight(1.0); //[cite: 1]
+      g.line(0, 0, sz * 0.55, -sz * 0.05); //[cite: 1]
+
+      // Radial veins[cite: 1]
+      g.stroke(rr * 1.3, gr * 1.4, br * 1.2, 65); //[cite: 1]
+      g.strokeWeight(0.7); //[cite: 1]
+      for (let i = 0; i < 8; i++) { //[cite: 1]
+        const va = (p.TWO_PI / 8) * i + notchAng; //[cite: 1]
+        g.line(0, 0, p.cos(va) * sz * 0.88, p.sin(va) * sz * 0.88); //[cite: 1]
+      } //[cite: 1]
+      // Sheen highlight[cite: 1]
+      g.noStroke(); //[cite: 1]
+      g.fill(rr * 1.6, gr * 1.6, br * 1.5, 35); //[cite: 1]
+      g.ellipse(-sz * 0.22, -sz * 0.18, sz * 0.45, sz * 0.3); //[cite: 1]
+      g.noStroke(); //[cite: 1]
+      g.pop(); //[cite: 1]
+    } //[cite: 1]
+
+    function rot3D(x, y, z) { //[cite: 1]
+      const cY = p.cos(rotY), sY = p.sin(rotY); //[cite: 1]
+      const rx  = x*cY + z*sY; //[cite: 1]
+      const rz  = -x*sY + z*cY; //[cite: 1]
+      const cX  = p.cos(rotX), sX = p.sin(rotX); //[cite: 1]
+      const ry  = y*cX - rz*sX; //[cite: 1]
+      const rz2 = y*sX + rz*cX; //[cite: 1]
+      const cZ  = p.cos(rotZ), sZ = p.sin(rotZ); //[cite: 1]
+      const fx  = rx*cZ - ry*sZ; //[cite: 1]
+      const fy  = rx*sZ + ry*cZ; //[cite: 1]
+      return [fx, fy, rz2]; //[cite: 1]
+    } //[cite: 1]
+
+    // Lotus petal: tall, pointed, slightly concave tip — drawn as a narrow elongated shape[cite: 1]
+    function drawLotusPetal(g, it) { //[cite: 1]
+      if (!it.pw || it.pw < 0.5) return; //[cite: 1]
+      g.push(); //[cite: 1]
+      g.translate(it.sx, it.sy); //[cite: 1]
+      g.rotate(it.sa); //[cite: 1]
+      g.fill(it.r, it.gr, it.b); //[cite: 1]
+
+      const pl  = it.pl; //[cite: 1]
+      const pw  = it.pw; //[cite: 1]
+      const rAmt = it.rAmt; //[cite: 1]
+      const rPh  = it.rPhase; //[cite: 1]
+      const cup  = it.cup || 0; //[cite: 1]
+
+      // Lotus petals are narrow at base, widest around 40%, pointed at tip[cite: 1]
+      g.beginShape(); //[cite: 1]
+      // Right edge: base → widest point → tip[cite: 1]
+      for (let tt = 0; tt <= 1; tt += 0.06) { //[cite: 1]
+        const px   = tt * pl; //[cite: 1]
+        // envelope: narrows near 0 and near 1, peak near 0.40[cite: 1]
+        const env  = p.sin(tt * p.PI * 0.95) * p.pow(1 - tt * 0.55, 1.1); //[cite: 1]
+        const bW   = env * pw; //[cite: 1]
+        const cupC = p.sin(tt * p.PI) * cup * pw * 0.55; //[cite: 1]
+        const ruf  = p.sin(tt * 5 + rPh) * rAmt * tt * (1 - tt); //[cite: 1]
+        g.vertex(px, bW + ruf + cupC); //[cite: 1]
+      } //[cite: 1]
+      // Left edge: tip → widest → base[cite: 1]
+      for (let tt = 1; tt >= 0; tt -= 0.06) { //[cite: 1]
+        const px   = tt * pl; //[cite: 1]
+        const env  = p.sin(tt * p.PI * 0.95) * p.pow(1 - tt * 0.55, 1.1); //[cite: 1]
+        const bW   = env * pw; //[cite: 1]
+        const cupC = p.sin(tt * p.PI) * cup * pw * 0.35; //[cite: 1]
+        const ruf  = p.sin(tt * 5 + rPh + p.PI) * rAmt * tt * (1 - tt); //[cite: 1]
+        g.vertex(px, -bW + ruf - cupC); //[cite: 1]
+      } //[cite: 1]
+      g.endShape(p.CLOSE); //[cite: 1]
+
+      // Central vein highlight[cite: 1]
+      g.fill(it.r * 1.35, it.gr * 1.35, it.b * 1.2, 55); //[cite: 1]
+      g.beginShape(); //[cite: 1]
+      for (let tt = 0.05; tt <= 0.95; tt += 0.1) { //[cite: 1]
+        const px = tt * pl; //[cite: 1]
+        const hw = p.sin(tt * p.PI * 0.95) * pw * 0.12; //[cite: 1]
+        g.vertex(px, hw); //[cite: 1]
+      } //[cite: 1]
+      for (let tt = 0.95; tt >= 0.05; tt -= 0.1) { //[cite: 1]
+        const px = tt * pl; //[cite: 1]
+        const hw = p.sin(tt * p.PI * 0.95) * pw * 0.12; //[cite: 1]
+        g.vertex(px, -hw); //[cite: 1]
+      } //[cite: 1]
+      g.endShape(p.CLOSE); //[cite: 1]
+
+      g.pop(); //[cite: 1]
+    } //[cite: 1]
+
+    function drawLotus3D(g, f, bl, wl, cx, cy) { //[cite: 1]
+      wl = wl || 0; //[cite: 1]
+      const focal    = 420; //[cite: 1]
+      const wiltTilt = wl * 0.14; //[cite: 1]
+      const cosW = p.cos(wiltTilt), sinW = p.sin(wiltTilt); //[cite: 1]
+      const items = []; //[cite: 1]
+
+      // Sepals (green, close in tight around bud, open wide as flower blooms)[cite: 1]
+      if (f.sepals && bl < 0.75) { //[cite: 1]
+        const numS    = f.sepals; //[cite: 1]
+        const openAng = easeInOutCubic(bl) * p.HALF_PI * 0.85; //[cite: 1]
+        let sepalAlpha = p.map(p.constrain(bl, 0, 0.75), 0, 0.75, 255, 0); //[cite: 1]
+        if (wl) sepalAlpha *= (1 - wl); //[cite: 1]
+        if (sepalAlpha > 5) { //[cite: 1]
+          for (let i = 0; i < numS; i++) { //[cite: 1]
+            const a     = (p.TWO_PI / numS) * i; //[cite: 1]
+            const sTilt = p.HALF_PI * 0.3 - openAng; //[cite: 1]
+            const dist  = 44; //[cite: 1]
+            const ct = p.cos(sTilt), st = p.sin(sTilt); //[cite: 1]
+            const x3 = p.cos(a)*dist*ct, z3 = p.sin(a)*dist*ct, y3 = -st*dist; //[cite: 1]
+            const [rx, ry, rz] = rot3D(x3, y3, z3); //[cite: 1]
+            const ps     = focal / (focal + rz); //[cite: 1]
+            const sepAng = p.atan2(ry, rx); //[cite: 1]
+            const fv     = p.max(focal / (focal + p.abs(rz)), 0.15); //[cite: 1]
+            items.push({ rz, tp:'s', sx:rx*ps, sy:ry*ps, sa:sepAng, //[cite: 1]
+              sLen:72*ps, sW:18*ps*fv, sAlpha:sepalAlpha, sc:f.stemC }); //[cite: 1]
+          } //[cite: 1]
+        } //[cite: 1]
+      } //[cite: 1]
+
+      // Receptacle (seed pod center) — prominent flat-topped cone, very characteristic of lotus[cite: 1]
+      const cAlpha = p.constrain((bl - 0.35) / 0.35, 0, 1) * (1 - wl); //[cite: 1]
+      if (cAlpha > 0) items.push({ rz:0, tp:'c', sx:0, sy:0, sa:0, alpha:cAlpha, recR: f.receptacleR || 28 }); //[cite: 1]
+
+      // Petals — lotus has wider-spaced layers, petals more upright and pointed[cite: 1]
+      for (let layer = f.layers; layer >= 0; layer--) { //[cite: 1]
+        const lr         = layer / f.layers; //[cite: 1]
+        const layerDelay = (1 - lr) * 0.30; //[cite: 1]
+        const layerBl    = p.constrain((bl - layerDelay) / (1 - layerDelay), 0, 1); //[cite: 1]
+        const ebl        = easeInOutCubic(layerBl); //[cite: 1]
+        if (ebl < 0.01) continue; //[cite: 1]
+        const layerFall = p.constrain((wl * 1.4 - (1 - lr) * 0.4) / 0.6, 0, 1); //[cite: 1]
+        if (layerFall > 0.9) continue; //[cite: 1]
+
+        const innerBoost = (1 - lr); //[cite: 1]
+        // Lotus: fewer petals, more ordered[cite: 1]
+        const np = f.petalsPerLayer + p.floor(layer * 1.2) + p.floor(innerBoost * 3); //[cite: 1]
+        const baseR = p.lerp(12, f.maxRadius, lr); //[cite: 1]
+        // Lotus petals stand more upright — smaller tilt angle[cite: 1]
+        let tiltAngle = p.lerp(p.PI * 0.30, p.PI * 0.03, ebl) + layerFall * p.PI * 0.18; //[cite: 1]
+        tiltAngle -= innerBoost * 0.10 * ebl; //[cite: 1]
+        const cosTilt = p.cos(tiltAngle), sinTilt = p.sin(tiltAngle); //[cite: 1]
+
+        for (let i = 0; i < np; i++) { //[cite: 1]
+          const petalHash = ((i * 73 + layer * 137) & 0xFF) / 255; //[cite: 1]
+          if (wl > 0.1 && petalHash < (wl - 0.1) * 1.3) continue; //[cite: 1]
+          let angle = (p.TWO_PI / np) * i + layer * 0.38 + p.sin(layer * 1.8) * 0.08; //[cite: 1]
+          angle += petalHash * 0.10; //[cite: 1]
+          const droopAmt = layerFall * 0.45 * (0.4 + lr * 0.6); //[cite: 1]
+          const shrink   = 1 - layerFall * 0.30; //[cite: 1]
+          const dist     = baseR * ebl * (0.30 + lr * 0.22); //[cite: 1]
+          let x3 = p.cos(angle)*dist*cosTilt, z3 = p.sin(angle)*dist*cosTilt, y3 = -sinTilt*dist + droopAmt*22; //[cite: 1]
+          if (wiltTilt > 0.001) { //[cite: 1]
+            const ny = y3*cosW - x3*sinW*0.3; //[cite: 1]
+            x3 = x3 + y3*sinW*0.3; y3 = ny; //[cite: 1]
+          } //[cite: 1]
+          const [rx, ry, rz] = rot3D(x3, y3, z3); //[cite: 1]
+          const ps          = focal / (focal + rz); //[cite: 1]
+          const sx          = rx * ps, sy = ry * ps; //[cite: 1]
+          const viewAngle   = p.atan2(ry, rx); //[cite: 1]
+          const depthFactor = focal / (focal + p.abs(rz)); //[cite: 1]
+          const faceVis     = p.max(depthFactor, 0.12); //[cite: 1]
+          const nx3 = p.cos(angle)*cosTilt, ny3 = -sinTilt, nz3 = p.sin(angle)*cosTilt; //[cite: 1]
+          const [,,lnz] = rot3D(nx3, ny3, nz3); //[cite: 1]
+          const lightDot = p.constrain(-lnz, -1, 1); //[cite: 1]
+          const lightMod = p.map(lightDot, -1, 1, 0.30, 1.30); //[cite: 1]
+          const cupFactor = (1 - lr) * (1 - ebl * 0.45) * 0.28; //[cite: 1]
+
+          // Lotus petals: taller and narrower than peony[cite: 1]
+          const pl = baseR * (0.22 + 0.78*ebl) * (1.30 + innerBoost*0.25) * shrink * ps; //[cite: 1]
+          let pw   = baseR * (0.12 + 0.88*ebl) * 0.38 * shrink * ps * faceVis; //[cite: 1]
+          pw *= (1 + cupFactor); //[cite: 1]
+
+          const rPhase = i*1.5 + layer*0.8; //[cite: 1]
+          // Lotus: very subtle ruffle (smooth petals)[cite: 1]
+          const rAmt = f.ruffleAmt * ebl * (0.5 + layerFall * 1.2 + innerBoost * 0.3) * ps; //[cite: 1]
+
+          const lA = p.sin(angle + layer*0.5); //[cite: 1]
+          const dM = p.map(layer, 0, f.layers, 0.38, 1.0); //[cite: 1]
+          const bB = 0.42 + 0.58*ebl; //[cite: 1]
+          const cm = p.map(lA, -1, 1, 0.48, 1.18) * dM * bB * lightMod; //[cite: 1]
+
+          // Color: tips are lighter/whiter, base is deeper pink[cite: 1]
+          const tipBlend = p.pow(lr, 0.7); //[cite: 1]
+          let r  = p.constrain(p.lerp(f.c1[0], f.c2[0], tipBlend) * cm, 0, 255); //[cite: 1]
+          let gr = p.constrain(p.lerp(f.c1[1], f.c2[1], tipBlend) * cm, 0, 255); //[cite: 1]
+          let b  = p.constrain(p.lerp(f.c1[2], f.c2[2], tipBlend) * cm, 0, 255); //[cite: 1]
+          if (wl > 0) { //[cite: 1]
+            const wf = p.min(1, layerFall * 1.3); //[cite: 1]
+            r  = p.lerp(r,  r  * 0.5 + 50, wf); //[cite: 1]
+            gr = p.lerp(gr, gr * 0.3 + 25, wf); //[cite: 1]
+            b  = p.lerp(b,  b  * 0.15 + 8,  wf); //[cite: 1]
+          } //[cite: 1]
+          items.push({ rz, tp:'p', sx, sy, sa:viewAngle, pl, pw, rPhase, rAmt, r, gr, b, cup:cupFactor }); //[cite: 1]
+        } //[cite: 1]
+      } //[cite: 1]
+
+      items.sort((a, b) => a.rz - b.rz); //[cite: 1]
+
+      for (const it of items) { //[cite: 1]
+        if (it.tp === 'c') { //[cite: 1]
+          // Lotus receptacle: flat-topped conical seed pod (the iconic green disc with holes)[cite: 1]
+          g.push(); //[cite: 1]
+          g.translate(cx, cy); //[cite: 1]
+          const [cnx, cny, cnz] = rot3D(0, -1, 0); //[cite: 1]
+          const cps = focal / (focal + cnz * 12); //[cite: 1]
+          const csx = cnx * 12 * cps, csy = cny * 12 * cps; //[cite: 1]
+          const recR = it.recR || 28; //[cite: 1]
+
+          // Pod body — layered ellipses for the flat-top cone[cite: 1]
+          for (let r = recR; r > 0; r -= 3.5) { //[cite: 1]
+            const ratio = r / recR; //[cite: 1]
+            const ySink = (1 - ratio) * 4 * cps; //[cite: 1]
+            g.fill( //[cite: 1]
+              p.lerp(40,  90,  ratio) * (it.alpha || 1), //[cite: 1]
+              p.lerp(100, 160, ratio) * (it.alpha || 1), //[cite: 1]
+              p.lerp(40,  80,  ratio) * (it.alpha || 1) //[cite: 1]
+            ); //[cite: 1]
+            g.ellipse(csx, csy + ySink, r * 2.1 * cps, r * 0.85 * cps); //[cite: 1]
+          } //[cite: 1]
+
+          // Seed holes on top of the receptacle[cite: 1]
+          if (bl > 0.55) { //[cite: 1]
+            const sa2 = p.constrain((bl - 0.55) / 0.30, 0, 1) * (1 - wl); //[cite: 1]
+            const holeCount = 10; //[cite: 1]
+            for (let i = 0; i < holeCount; i++) { //[cite: 1]
+              const ha  = (p.TWO_PI / holeCount) * i; //[cite: 1]
+              const hd  = recR * 0.52 * cps; //[cite: 1]
+              const hx  = csx + p.cos(ha) * hd; //[cite: 1]
+              const hy  = csy + p.sin(ha) * hd * 0.42; //[cite: 1]
+              const hr  = 3.5 * cps * sa2; //[cite: 1]
+              g.fill(20, 55, 20, 200 * sa2); //[cite: 1]
+              g.ellipse(hx, hy, hr * 2, hr * 1.3); //[cite: 1]
+            } //[cite: 1]
+            // Center holes[cite: 1]
+            for (let i = 0; i < 3; i++) { //[cite: 1]
+              const ha = (p.TWO_PI / 3) * i; //[cite: 1]
+              const hd = recR * 0.2 * cps; //[cite: 1]
+              g.fill(20, 55, 20, 180 * sa2); //[cite: 1]
+              g.ellipse(csx + p.cos(ha)*hd, csy + p.sin(ha)*hd*0.4, 3*cps*sa2, 2.2*cps*sa2); //[cite: 1]
+            } //[cite: 1]
+          } //[cite: 1]
+
+          // Yellow stamens ring around receptacle[cite: 1]
+          if (bl > 0.50) { //[cite: 1]
+            const sa3 = p.constrain((bl - 0.50) / 0.30, 0, 1) * (1 - wl); //[cite: 1]
+            for (let i = 0; i < 28; i++) { //[cite: 1]
+              const a  = (p.TWO_PI / 28) * i; //[cite: 1]
+              const d  = recR * 0.85 + (i % 4) * 2.8; //[cite: 1]
+              const stX = p.cos(a)*d*cps, stZ = p.sin(a)*d*cps*0.35, stY = -4; //[cite: 1]
+              const [srx, sry, srz] = rot3D(stX, stY, stZ); //[cite: 1]
+              const stP = focal / (focal + srz); //[cite: 1]
+              // Stamen filament[cite: 1]
+              g.fill(245, 220, 60, 130 * sa3); //[cite: 1]
+              g.ellipse(csx + srx*stP, csy + sry*stP, 1.8*stP, 1.8*stP); //[cite: 1]
+              // Anther tip[cite: 1]
+              g.fill(255, 240, 80, 160 * sa3); //[cite: 1]
+              g.ellipse(csx + srx*stP, csy + sry*stP - 1.5*stP, 2.8*stP, 2.8*stP); //[cite: 1]
+            } //[cite: 1]
+          } //[cite: 1]
+          g.pop(); //[cite: 1]
+
+        } else if (it.tp === 's') { //[cite: 1]
+          if (!it.sW || it.sW < 1) continue; //[cite: 1]
+          g.push(); //[cite: 1]
+          g.translate(cx + it.sx, cy + it.sy); //[cite: 1]
+          g.rotate(it.sa); //[cite: 1]
+          // Lotus sepals: narrower and more pointed than peony[cite: 1]
+          g.fill(it.sc[0]*0.65, it.sc[1]*0.95, it.sc[2]*0.55, it.sAlpha); //[cite: 1]
+          g.beginShape(); //[cite: 1]
+          g.vertex(0, 0); //[cite: 1]
+          g.bezierVertex(it.sLen*0.25, -it.sW*0.5, it.sLen*0.65, -it.sW*0.3, it.sLen, 0); //[cite: 1]
+          g.bezierVertex(it.sLen*0.65,  it.sW*0.3,  it.sLen*0.25,  it.sW*0.5, 0, 0); //[cite: 1]
+          g.endShape(p.CLOSE); //[cite: 1]
+          g.pop(); //[cite: 1]
+
+        } else { //[cite: 1]
+          drawLotusPetal(g.push ? g : buf, it); //[cite: 1]
+          // Because drawLotusPetal uses its own push/pop we need to translate manually[cite: 1]
+          // Fix: inline the petal draw[cite: 1]
+          if (!it.pw || it.pw < 0.5) continue; //[cite: 1]
+          buf.push(); //[cite: 1]
+          buf.translate(cx + it.sx, cy + it.sy); //[cite: 1]
+          buf.rotate(it.sa); //[cite: 1]
+          buf.fill(it.r, it.gr, it.b); //[cite: 1]
+          const pl  = it.pl, pw  = it.pw; //[cite: 1]
+          const rAmt = it.rAmt, rPh = it.rPhase; //[cite: 1]
+          const cup  = it.cup || 0; //[cite: 1]
+          buf.beginShape(); //[cite: 1]
+          for (let tt = 0; tt <= 1; tt += 0.065) { //[cite: 1]
+            const px  = tt * pl; //[cite: 1]
+            const env = p.sin(tt * p.PI * 0.95) * p.pow(1 - tt * 0.55, 1.1); //[cite: 1]
+            const bW  = env * pw; //[cite: 1]
+            const cupC = p.sin(tt * p.PI) * cup * pw * 0.55; //[cite: 1]
+            const ruf = p.sin(tt * 5 + rPh) * rAmt * tt * (1 - tt); //[cite: 1]
+            buf.vertex(px, bW + ruf + cupC); //[cite: 1]
+          } //[cite: 1]
+          for (let tt = 1; tt >= 0; tt -= 0.065) { //[cite: 1]
+            const px  = tt * pl; //[cite: 1]
+            const env = p.sin(tt * p.PI * 0.95) * p.pow(1 - tt * 0.55, 1.1); //[cite: 1]
+            const bW  = env * pw; //[cite: 1]
+            const cupC = p.sin(tt * p.PI) * cup * pw * 0.35; //[cite: 1]
+            const ruf = p.sin(tt * 5 + rPh + p.PI) * rAmt * tt * (1 - tt); //[cite: 1]
+            buf.vertex(px, -bW + ruf - cupC); //[cite: 1]
+          } //[cite: 1]
+          buf.endShape(p.CLOSE); //[cite: 1]
+          // Vein[cite: 1]
+          buf.fill(it.r * 1.35, it.gr * 1.35, it.b * 1.2, 52); //[cite: 1]
+          buf.beginShape(); //[cite: 1]
+          for (let tt = 0.05; tt <= 0.92; tt += 0.1) { //[cite: 1]
+            const px = tt * pl; //[cite: 1]
+            const hw = p.sin(tt * p.PI * 0.95) * pw * 0.11; //[cite: 1]
+            buf.vertex(px, hw); //[cite: 1]
+          } //[cite: 1]
+          for (let tt = 0.92; tt >= 0.05; tt -= 0.1) { //[cite: 1]
+            const px = tt * pl; //[cite: 1]
+            const hw = p.sin(tt * p.PI * 0.95) * pw * 0.11; //[cite: 1]
+            buf.vertex(px, -hw); //[cite: 1]
+          } //[cite: 1]
+          buf.endShape(p.CLOSE); //[cite: 1]
+          buf.pop(); //[cite: 1]
+        } //[cite: 1]
+      } //[cite: 1]
+    } //[cite: 1]
+
+    function renderToScreen() { //[cite: 1]
+      const px      = buf.pixels; //[cite: 1]
+      const g       = p.max(4, p.round(grid)); //[cite: 1]
+      const asciiG  = p.max(g, 6); //[cite: 1]
+      const scaleF  = p.min(p.width / BUF_W, p.height / BUF_H) * 0.85; //[cite: 1]
+      const invScale = 1 / scaleF; //[cite: 1]
+      const renderW = BUF_W * scaleF, renderH = BUF_H * scaleF; //[cite: 1]
+      const ox = (p.width  - renderW) / 2 + mInfX; //[cite: 1]
+      const oy = (p.height - renderH) / 2 + mInfY; //[cite: 1]
+      const curM         = renderMode, prevM = prevMode, mt = modeT; //[cite: 1]
+      const transitionDone = mt >= 0.99; //[cite: 1]
+      const useNative    = (curM === 0) || (!transitionDone && prevM === 0); //[cite: 1]
+      if (useNative) { ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; } //[cite: 1]
+      const gEff  = (curM === 0 && transitionDone) ? asciiG : g; //[cite: 1]
+      const halfG = gEff * 0.5; //[cite: 1]
+      const yStart = p.max(0, p.floor(oy / gEff) * gEff); //[cite: 1]
+      const yEnd   = p.min(p.height, oy + renderH); //[cite: 1]
+      const xStart = p.max(0, p.floor(ox / gEff) * gEff); //[cite: 1]
+      const xEnd   = p.min(p.width, ox + renderW); //[cite: 1]
+      const asciiSize = gEff * 1.1; //[cite: 1]
+      let lastFontStr = ''; //[cite: 1]
+
+      for (let sy = yStart; sy < yEnd; sy += gEff) { //[cite: 1]
+        const byBase = p.floor((sy - oy) * invScale); //[cite: 1]
+        if (byBase < 0 || byBase >= BUF_H) continue; //[cite: 1]
+        const rowOff = byBase * BUF_W; //[cite: 1]
+        for (let sx = xStart; sx < xEnd; sx += gEff) { //[cite: 1]
+          const bx = p.floor((sx - ox) * invScale); //[cite: 1]
+          if (bx < 0 || bx >= BUF_W) continue; //[cite: 1]
+          const idx = (rowOff + bx) * 4; //[cite: 1]
+          const r = px[idx], gr = px[idx+1], b = px[idx+2]; //[cite: 1]
+          if ((r + gr + b) < 12) continue; //[cite: 1]
+          const bright = r*0.299 + gr*0.587 + b*0.114; //[cite: 1]
+          const cx = sx + halfG, cy = sy + halfG; //[cite: 1]
+          let mode; //[cite: 1]
+          if (transitionDone) { //[cite: 1]
+            mode = curM; //[cite: 1]
+          } else { //[cite: 1]
+            const hash = ((sx*73 + sy*137) & 0xFF) * 0.00392; //[cite: 1]
+            mode = hash < mt ? curM : prevM; //[cite: 1]
+          } //[cite: 1]
+          if (mode === 0) { //[cite: 1]
+            const fontSz  = p.floor(asciiSize * (0.4 + bright * 0.004)); //[cite: 1]
+            const fontStr = fontSz + 'px Courier New'; //[cite: 1]
+            if (fontStr !== lastFontStr) { ctx.font = fontStr; lastFontStr = fontStr; } //[cite: 1]
+            ctx.fillStyle = 'rgb(' + r + ',' + gr + ',' + b + ')'; //[cite: 1]
+            const ci = ((bright >> 2) + ((sx*7 + sy*13) >> 3)) % chars.length; //[cite: 1]
+            ctx.fillText(chars[ci], cx, cy); //[cite: 1]
+          } else if (mode === 1) { //[cite: 1]
+            p.fill(r, gr, b); //[cite: 1]
+            const d = gEff * (0.1 + bright * 0.0033); //[cite: 1]
+            p.ellipse(cx, cy, d, d); //[cite: 1]
+          } else { //[cite: 1]
+            p.fill(r, gr, b); //[cite: 1]
+            p.rectMode(p.CENTER); //[cite: 1]
+            p.rect(cx, cy, gEff*0.93, gEff*0.93); //[cite: 1]
+          } //[cite: 1]
+        } //[cite: 1]
+      } //[cite: 1]
+    } //[cite: 1]
+
+    function drawFPS() { //[cite: 1]
+      p.fill(255, 255, 255, 40); //[cite: 1]
+      p.textSize(9); //[cite: 1]
+      p.textAlign(p.LEFT, p.TOP); //[cite: 1]
+      p.text(p.floor(p.frameRate()) + ' fps', 10, 10); //[cite: 1]
+      p.textAlign(p.CENTER, p.CENTER); //[cite: 1]
+    } //[cite: 1]
+
+    p.mousePressed = function() { //[cite: 1]
+      if (loadingPhase) return; //[cite: 1]
+      triggerGlitch(); //[cite: 1]
+    }; //[cite: 1]
+
+    p.keyPressed = function() { //[cite: 1]
+      if (p.key === 'f' || p.key === 'F') { const fs = p.fullscreen(); p.fullscreen(!fs); } //[cite: 1]
+      if (p.key === 'g' || p.key === 'G') triggerGlitch(); //[cite: 1]
+    }; //[cite: 1]
+
+    p.windowResized = function() { //[cite: 1]
+      p.resizeCanvas(p.windowWidth, p.windowHeight); //[cite: 1]
+    }; //[cite: 1]
+  }; //[cite: 1]
+
+  p5Instance = new p5(sketch, document.getElementById('canvas-container')); //[cite: 1]
+</script>
 </body>
 </html>
